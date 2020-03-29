@@ -1,4 +1,4 @@
-# aws-lambda-cache
+# AWS Lambda Cache
 Python utility for caching SSM parameters in AWS Lambda functions.
 
 # Proposed solution
