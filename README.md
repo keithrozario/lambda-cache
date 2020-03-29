@@ -11,7 +11,7 @@ To cache a parameter for 5 minutes, simply decorate your handle function as foll
 
 from aws_lambda_cache import ssm_cache
 
-@ssm_cache(parameter='/production/app/var', ttl=300)
+@ssm_cache(parameter='/production/app/var', ttl_seconds=300)
 def handler(event, context):
 
     cached_value = event.get('_production_app_var')
@@ -24,7 +24,7 @@ def handler(event, context):
 
 ## Multiple variables
 
-To cache multiple parameters, apply multiple decorators:
+To cache multiple parameters, you can stack multiple decorators on top of each other:
 
 ```python
 
@@ -46,14 +46,14 @@ def handler(event, context):
 
 ## Rename parameter
 
-The variable is injected into the event parameter of the handling function. To provide a specific variable name, use the `event_var_name` parameter. This allows you to map multiple possible parameters into a single event variable (e.g. for prod, dev, test) using environment variables. In the example below `var_1` and `var_2` are set by the build pipeline corresponding to the different environments we're building. 
+The variable is injected into the event parameter of the handling function. To provide a specific variable name, use the `var_name` parameter. This allows you to map multiple possible parameters into a single event variable (e.g. for prod, dev, test) using environment variables. In the example below `var_1` and `var_2` are set by the build pipeline corresponding to the different environments we're building. 
 
 ```python
 
 from aws_lambda_cache import ssm_cache
 
-@ssm_cache(parameter=os.environ['var_1'], ttl=300, event_var_name='var_1')
-@ssm_cache(parameter=os.environ['var_2'], ttl=600, event_var_name='var_2)
+@ssm_cache(parameter=os.environ['var_1'], ttl=300, var_name='var_1')
+@ssm_cache(parameter=os.environ['var_2'], ttl=600, var_name='var_2)
 def handler(event, context):
 
     cached_value_1 = event.get('var_1')
