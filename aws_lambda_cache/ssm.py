@@ -48,7 +48,8 @@ def ssm_cache(parameter, ttl_seconds=60, var_name=False):
 def get_parameter_name(parameter, var_name):
     """
     Parameter names can include only the following symbols and letters: a-zA-Z0-9_.-/
-    if no var_name is specified, we substitute the slash '/' character with underscore '_'.
+    if var_name is False, we default parameter_name to the string after the last '/'
+    if var_name is not False, we return var_name
 
     Args:
         parameter(string): Name of the parameter in System Manager Parameter Store
@@ -60,7 +61,7 @@ def get_parameter_name(parameter, var_name):
     if var_name:
         parameter_name = var_name
     else:
-        parameter_name = parameter.replace("/", "_")
+        parameter_name = parameter.split("/")[-1]
 
     return parameter_name
 

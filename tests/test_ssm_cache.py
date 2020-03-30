@@ -6,14 +6,14 @@ import pytest
 from botocore.exceptions import ClientError
 
 from tests.variables_data import *
-from tests.helper_functions import update_parameter, update_secure_parameter
+from tests.helper_functions import update_parameter
 
 
 def test_initialize():
     assert __version__ == '0.2.5'
     update_parameter(ssm_parameter, ssm_parameter_value)
     update_parameter(ssm_parameter_2, ssm_parameter_2_value)
-    update_parameter(secure_parameter, secure_parameter_value)
+    update_parameter(secure_parameter, secure_parameter_value, param_type='SecureString')
     update_parameter(long_name_parameter, long_name_value)
 
 # Test Non-existent parameter
