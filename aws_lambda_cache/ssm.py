@@ -88,7 +88,7 @@ def get_parameter_age(parameter_name):
         }
         parameter_age = None
     # parameter doesn't exist in global_aws_lambda_cache or is still None (due to partial failure)
-    except (KeyError, TypeError):  
+    except (KeyError, TypeError):
         global_aws_lambda_cache[parameter_name] = {
             "value": None,
             "get_param_timestamp": None,
