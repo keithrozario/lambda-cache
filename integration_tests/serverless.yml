@@ -1,7 +1,8 @@
 service: aws-lambda-cache
 
 custom:
-  parameter_name: /lambda_cache/ssm_parameter
+  parameter_name: /lambda_cache/something
+  parameter_name_2 : /lambda_cache/test/something_else
 
 provider:
   name: aws
@@ -19,6 +20,16 @@ provider:
             - Ref: AWS::Region
             - Ref: AWS::AccountId
             - "parameter${self:custom.parameter_name}"
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+      Resource:
+        Fn::Join:
+          - ":"
+          - - "arn:aws:ssm"
+            - Ref: AWS::Region
+            - Ref: AWS::AccountId
+            - "parameter${self:custom.parameter_name_2}"
 
 package:
  include:
@@ -27,27 +38,10 @@ package:
    - ../aws_lambda_cache/__pycache__/**
 
 functions:
-  test_ssm:
+  single_handler:
     handler: test_ssm.single_parameter
-  test_ssm_2:
+  double_handler:
     handler: test_ssm.double_parameter
-
-resources:
-  Resources:
-    SsmParameter:
-      Type: AWS::SSM::Parameter
-      Properties:
-        Description: Normal Parameter for testing
-        Name: /lambda_cache/ssm_parameter
-        Tier: Standard
-        Type: String
-        Value: "Dummy Value 1"
-    SsmParameter2:
-      Type: AWS::SSM::Parameter
-      Properties:
-        Description: Normal Parameter for testing
-        Name: /lambda_cache/ssm_parameter_2
-        Tier: Standard
-        Type: String
-        Value: "Dummy Value 2"
+  default_param:
+    handler: test_ssm.rename_param
 
