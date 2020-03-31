@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aws_lambda_cache"
-version = "0.3.1"
+version = "0.3.2"
 description = "Python utility for caching SSM Parameters & Secrets in AWS Lambda functions"
 authors = ["keithrozario <keith@keithrozario.com>"]
 repository = "https://github.com/keithrozario/aws_lambda_cache"
@@ -24,6 +24,8 @@ python = "^3.6"
 pytest = "^4.6"
 black = "^19.10b0"
 boto3 = "^1.12.31"
+PyYaml = "^5.3.1"
+pip = "^20.0.2"
 
 [build-system]
 requires = ["poetry>=0.12"]

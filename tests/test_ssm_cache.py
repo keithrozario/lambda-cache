@@ -17,37 +17,48 @@ def test_initialize():
     update_parameter(ssm_parameter_2, ssm_parameter_2_value)
     update_parameter(secure_parameter, secure_parameter_value, param_type='SecureString')
     update_parameter(long_name_parameter, long_name_value)
+    update_parameter(string_list_parameter,string_list_value, param_type='StringList')
 
 # Test parameter assignment
 def test_get_parameter():
 
     parameter_assignment(ssm_parameter, ssm_parameter_value)
     parameter_assignment(secure_parameter, secure_parameter_value, 'SecureString')
+    parameter_assignment(string_list_parameter, string_list_value, parameter_type='StringList')
 
 
 def parameter_assignment(parameter, parameter_value, parameter_type='String'):
 
     dummy_name = ''.join(random.choices(string.ascii_lowercase, k = 8)) 
-    dummy_value = 'get_dummy'
+    
+    if parameter_type == 'StringList':
+        dummy_value = "d,e,f"
+        dummy_value_return = dummy_value.split(",")
+        parameter_value_return = parameter_value.split(",")
+    else:
+        dummy_value = 'get_dummy'
+        dummy_value_return = dummy_value
+        parameter_value_return = parameter_value
+
     ttl = 2
 
     param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
-    assert param == parameter_value
+    assert param == parameter_value_return
     
     update_parameter(parameter, dummy_value, parameter_type)
     param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
-    assert param == parameter_value
+    assert param == parameter_value_return
 
     time.sleep(ttl)
     param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
-    assert param == dummy_value
+    assert param == dummy_value_return
     param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
-    assert param == dummy_value
+    assert param == dummy_value_return
 
     time.sleep(ttl)
     update_parameter(parameter, parameter_value, parameter_type)
     param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
-    assert param == parameter_value
+    assert param == parameter_value_return
 
 # Test Non-existent parameter
 
@@ -173,3 +184,31 @@ def test_no_cache():
     event = no_cache(test_event, test_context)
     assert event.get(ssm_parameter_default_name) == ssm_parameter_value
 
+# Test StringList with cache
+@ssm_cache(parameter=string_list_parameter, ttl_seconds=2)
+def string_list(event, context):
+    return event
+
+
+
+def test_string_list():
+    dummy_value = 'd,e,f'
+    dummy_value_return = dummy_value.split(',')
+
+    
+    return_list = string_list({},{}).get(string_list_default_name)
+    assert return_list == string_list_value.split(',')
+    
+    update_parameter(string_list_parameter,dummy_value,param_type='StringList')
+    time.sleep(1)
+    return_list = string_list({},{}).get(string_list_default_name)
+    assert return_list == string_list_value.split(',')
+
+    time.sleep(1)
+    return_list = string_list({},{}).get(string_list_default_name)
+    assert return_list == dummy_value_return
+
+    update_parameter(string_list_parameter,string_list_value, param_type='StringList')
+    time.sleep(2)
+    return_list = string_list({},{}).get(string_list_default_name)
+    assert return_list == string_list_value.split(',')

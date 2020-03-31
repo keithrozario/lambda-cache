@@ -6,7 +6,7 @@ ssm_parameter_default_name = 'ssm_parameter'
 ssm_parameter_name_2 = '/lambda_cache/ssm_parameter_2'
 ssm_parameter_default_name_2 = 'ssm_parameter_2'
 
-@ssm_cache(ssm_parameter_name
+@ssm_cache(ssm_parameter_name, ttl_seconds=2)
 def single_parameter(event, context):
     
     body = {
@@ -20,12 +20,12 @@ def single_parameter(event, context):
 
     return response
 
-@ssm_cache(ssm_parameter_name_2)
-@ssm_cache(ssm_parameter_name)
+@ssm_cache(ssm_parameter_name_2, ttl_seconds=2)
+@ssm_cache(ssm_parameter_name, ttl_seconds=2)
 def double_parameter(event, context):
     
     body = {
-        "message": event.get(ssm_parameter_default_name)
+        "message": event.get(ssm_parameter_default_name),
         "message_2": event.get(ssm_parameter_name_2)
     }
 

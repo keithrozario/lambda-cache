@@ -14,3 +14,7 @@ secure_parameter_default_name = "somethingsecure"
 long_name_parameter = "/lambda_cache/test/this/is/a/long/parameter/value/zzzzzzz/9/10/11"
 long_name_value = "Long name"
 long_name_default_name = "11"
+
+string_list_parameter = "/lambda/cache/test/somelist"
+string_list_value = "a,b,c"
+string_list_default_name = "somelist"
