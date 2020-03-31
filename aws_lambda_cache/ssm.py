@@ -5,11 +5,8 @@ import boto3
 
 def ssm_cache(parameter, ttl_seconds=60, var_name=False):
     """
-    Get_parameter in SSM parameter store, and injects it into the event object of the lambda function
-    stores the value and timestamp of the get_parameter call into a global map called global_aws_lambda_cache
-        if last lookup time was < ttl_seconds ago, value in global map is returned instead
-        if last lookup time was >= ttl_seconds ago, get_parameter is called again, repopulating global_aws_lambda_cache
-    
+    Calls parameter caching, and decorates function by injecting key value into the event object
+
     Args:
         parameter(string): Name of the parameter in System Manager Parameter Store
         ttl_seconds(int) : Time to Live of the parameter in seconds
@@ -24,25 +21,66 @@ def ssm_cache(parameter, ttl_seconds=60, var_name=False):
         @functools.wraps(func)
         def inner_function(event, context):
 
-            parameter_name = get_parameter_name(parameter, var_name)
-            parameter_age = get_parameter_age(parameter_name)
-
-            if parameter_age is None:
-                event[parameter_name] = get_parameter_from_ssm(
-                    parameter, parameter_name
-                )
-            elif parameter_age < ttl_seconds:
-                event[parameter_name] = get_parameter_from_cache(parameter_name)
-            else:
-                event[parameter_name] = get_parameter_from_ssm(
-                    parameter, parameter_name
-                )
+            # Inject {parameter_name: parameter_value} into event dict
+            event.update(parameter_caching(parameter, ttl_seconds, var_name))
 
             return func(event, context)
 
         return inner_function
 
     return decorator
+
+def get_ssm_cache(parameter, ttl_seconds=60, var_name=False):
+    """
+    Wrapper function for parameter_caching
+
+    Args:
+        parameter(string): Name of the parameter in System Manager Parameter Store
+        ttl_seconds(int) : Time to Live of the parameter in seconds
+        var_name(string) : Optional name of parameter to inject into event object
+
+    Returns:
+        parameter_value(string)  : Value of the parameter
+    """
+
+    response = parameter_caching(parameter, ttl_seconds, var_name)
+    parameter_value = list(response.values())[0]
+    return parameter_value
+
+
+def parameter_caching(parameter, ttl_seconds, var_name):
+    """
+    Executes the parameter caching logic.
+    If parameter doesn't exist, returns parameter by calling ssm
+    If parameter does exist:
+        If parameter_age < ttl_seconds, returns parameter from cache
+        If parameter_age >= ttl_seconds, returns parameter from ssm
+
+    Args:
+        parameter(string): Name of the parameter in System Manager Parameter Store
+        ttl_seconds(int) : Time to Live of the parameter in seconds
+        var_name(string) : Optional name of parameter to inject into event object
+
+    Returns:
+        key_value(dict)  : {parameter_name: parameter_value}
+
+    """
+
+    parameter_name = get_parameter_name(parameter, var_name)
+    parameter_age = get_parameter_age(parameter_name)
+
+    if parameter_age is None:
+        value = get_parameter_from_ssm(
+            parameter, parameter_name
+        )
+    elif parameter_age < ttl_seconds:
+        value = get_parameter_from_cache(parameter_name)
+    else:
+        value = get_parameter_from_ssm(
+            parameter, parameter_name
+        )
+
+    return {parameter_name: value}
 
 
 def get_parameter_name(parameter, var_name):
@@ -55,7 +93,7 @@ def get_parameter_name(parameter, var_name):
         parameter(string): Name of the parameter in System Manager Parameter Store
         var_name(string) : Optional name of parameter to inject into event object
     Returns:
-        parameter_name   : Name of parameter stored in global_aws_lambda_cache map
+        parameter_name   : Name of parameter stored in global_aws_lambda_cache dict
     """
 
     if var_name:
@@ -81,12 +119,14 @@ def get_parameter_age(parameter_name):
             "get_param_timestamp"
         ]
         parameter_age = int(time.time() - get_param_timestamp)
+    
     # create global_aws_lambda_cache
     except NameError:
         global_aws_lambda_cache = {
             parameter_name: {"value": None, "get_param_timestamp": None}
         }
         parameter_age = None
+    
     # parameter doesn't exist in global_aws_lambda_cache or is still None (due to partial failure)
     except (KeyError, TypeError):
         global_aws_lambda_cache[parameter_name] = {

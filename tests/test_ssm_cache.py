@@ -1,7 +1,9 @@
 from aws_lambda_cache import __version__
 from aws_lambda_cache import ssm_cache
+from aws_lambda_cache import get_ssm_cache
 
 import time
+import random, string
 import pytest
 from botocore.exceptions import ClientError
 
@@ -15,6 +17,37 @@ def test_initialize():
     update_parameter(ssm_parameter_2, ssm_parameter_2_value)
     update_parameter(secure_parameter, secure_parameter_value, param_type='SecureString')
     update_parameter(long_name_parameter, long_name_value)
+
+# Test parameter assignment
+def test_get_parameter():
+
+    parameter_assignment(ssm_parameter, ssm_parameter_value)
+    parameter_assignment(secure_parameter, secure_parameter_value, 'SecureString')
+
+
+def parameter_assignment(parameter, parameter_value, parameter_type='String'):
+
+    dummy_name = ''.join(random.choices(string.ascii_lowercase, k = 8)) 
+    dummy_value = 'get_dummy'
+    ttl = 2
+
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    assert param == parameter_value
+    
+    update_parameter(parameter, dummy_value, parameter_type)
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    assert param == parameter_value
+
+    time.sleep(ttl)
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    assert param == dummy_value
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    assert param == dummy_value
+
+    time.sleep(ttl)
+    update_parameter(parameter, parameter_value, parameter_type)
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    assert param == parameter_value
 
 # Test Non-existent parameter
 
@@ -139,3 +172,4 @@ def test_no_cache():
     update_parameter(ssm_parameter, ssm_parameter_value)
     event = no_cache(test_event, test_context)
     assert event.get(ssm_parameter_default_name) == ssm_parameter_value
+
