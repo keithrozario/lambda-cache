@@ -13,3 +13,10 @@ def update_parameter(parameter, value, param_type='String'):
         Tier='Standard'
         )
     return
+
+def delete_parameters(parameters: list):
+    ssm_client = boto3.client('ssm')
+    response = ssm_client.delete_parameters(
+        Names=parameters
+    )
+    return
