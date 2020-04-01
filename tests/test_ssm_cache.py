@@ -42,22 +42,22 @@ def parameter_assignment(parameter, parameter_value, parameter_type='String'):
 
     ttl = 2
 
-    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl)
     assert param == parameter_value_return
     
     update_parameter(parameter, dummy_value, parameter_type)
-    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl)
     assert param == parameter_value_return
 
     time.sleep(ttl)
-    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl)
     assert param == dummy_value_return
-    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl)
     assert param == dummy_value_return
 
     time.sleep(ttl)
     update_parameter(parameter, parameter_value, parameter_type)
-    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl, var_name=dummy_name)
+    param = get_ssm_cache(parameter=parameter, ttl_seconds=ttl)
     assert param == parameter_value_return
 
 # Test Non-existent parameter

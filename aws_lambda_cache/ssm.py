@@ -38,7 +38,7 @@ def ssm_cache(parameter, ttl_seconds=60, var_name=False):
     return decorator
 
 
-def get_ssm_cache(parameter, ttl_seconds=60, var_name=False):
+def get_ssm_cache(parameter, ttl_seconds=60):
     """
     Wrapper function for parameter_caching
 
@@ -54,7 +54,7 @@ def get_ssm_cache(parameter, ttl_seconds=60, var_name=False):
     response = check_cache(
         parameter=parameter,
         ttl_seconds=ttl_seconds,
-        entry_name=var_name,
+        entry_name=f"ssm-{parameter}", #use the parameter name as the entry name in cache to avoid conflict
         miss_function=get_parameter_from_ssm,
     )
     parameter_value = list(response.values())[0]
