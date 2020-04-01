@@ -68,7 +68,7 @@ def test_secure_string():
     function_name = f"{service}-{stage}-secure_string"
     generic_test(function_name, secure_parameter, secure_parameter_value, param_type='SecureString')
 
-def test_lambda_double_handler():
+def test_lambda_multi_handler():
     function_name = f"{service}-{stage}-multi_handler"
     return_value = {"param_1": ssm_parameter_value, 
                     "param_2": ssm_parameter_2_value,
@@ -90,6 +90,41 @@ def test_lambda_double_handler():
     return_value["param_1"] = new_value
     return_value["param_2"] = new_value
     assert value == return_value
+
+def test_lambda_assign_parameter():
+    test_initialize()
+    function_name = f"{service}-{stage}-assign_parameter"
+    return_value = {"param_1": ssm_parameter_value, 
+                    "param_2": ssm_parameter_2_value,
+                    "param_3": string_list_value.split(','),
+                    "param_4": secure_parameter_value}
+    
+    new_value = ''.join(random.choices(string.ascii_lowercase, k = 8))
+    
+    value = get_message_from_lambda(function_name)
+    assert value == return_value
+
+    update_parameter(ssm_parameter, new_value)
+    update_parameter(ssm_parameter_2, new_value)
+    update_parameter(secure_parameter, new_value)
+    value = get_message_from_lambda(function_name)
+    assert value == return_value
+
+    time.sleep(20) # after 20 seconds
+    return_value['param_1'] = new_value
+    value = get_message_from_lambda(function_name)
+    assert value == return_value
+
+    time.sleep(10) # after 30 seconds
+    return_value['param_2'] = new_value
+    value = get_message_from_lambda(function_name)
+    assert value == return_value
+
+    time.sleep(30) # after 60 seconds
+    return_value['param_4'] = new_value
+    value = get_message_from_lambda(function_name)
+    assert value == return_value
+    
 
 
 # Config Variables

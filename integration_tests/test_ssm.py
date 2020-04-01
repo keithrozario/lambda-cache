@@ -43,8 +43,10 @@ def multi_parameter(event, context):
                "param_4": event.get(secure_parameter_default_name)}
     return generic_return(message)
 
+
 def assign_parameter(event, context):
-
-    return generic_return(event.get(ssm_parameter.split('/')[-1]))
-
-
+    message = {"param_1": get_ssm_cache(parameter=ssm_parameter, ttl_seconds=20),
+               "param_2": get_ssm_cache(parameter=ssm_parameter_2, ttl_seconds=30),
+               "param_3": get_ssm_cache(parameter=string_list_parameter, ttl_seconds=40),
+               "param_4": get_ssm_cache(parameter=secure_parameter)}
+    return generic_return(message)

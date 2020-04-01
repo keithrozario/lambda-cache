@@ -69,4 +69,6 @@ functions:
     handler: test_ssm.secure_string
   string_list:
     handler: test_ssm.string_list
+  assign_parameter:
+    handler: test_ssm.assign_parameter
 
