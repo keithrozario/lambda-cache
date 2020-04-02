@@ -38,5 +38,4 @@ jobs:
 
       - name: Test with Lambda
         working-directory: ./tests
-        run: poetry run pytest test_deployed_lambda.py --cov ../aws_lambda_cache
-        
+        run: poetry run pytest test_deployed_lambda.py

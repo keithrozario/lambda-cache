@@ -27,7 +27,7 @@ def get_serverless_config():
     
     return config
 
-def generic_test(function_name,parameter_name,parameter_value,sleep_time=60, param_type='String'):
+def generic_test(function_name, parameter_name,  parameter_value, sleep_time=60, param_type='String'):
     new_value = ''.join(random.choices(string.ascii_lowercase, k = 8))
 
     value = get_message_from_lambda(function_name)
@@ -62,7 +62,7 @@ def test_lambda_single_hander():
 
 def test_renamed_var():
     function_name = f"{service}-{stage}-default_param"
-    generic_test(function_name, ssm_parameter_2, ssm_parameter_2_value, 5, param_type='StringList')
+    generic_test(function_name, ssm_parameter_2, ssm_parameter_2_value, 5)
 
 def test_secure_string():
     function_name = f"{service}-{stage}-secure_string"

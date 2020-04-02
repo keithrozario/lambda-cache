@@ -1,7 +1,9 @@
 # AWS Lambda Cache
 Python utility for caching SSM parameters in AWS Lambda functions.
 
-** THIS IS NOT WORKING YET, DO NOT USE **
+![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=red?style=flat-square) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7|%203.8&color=blue?style=flat-square&logo=python)
+
+![Test](https://github.com/keithrozario/aws_lambda_cache/workflows/Test/badge.svg) 
 
 ## Simple use case
 
