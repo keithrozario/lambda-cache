@@ -31,4 +31,4 @@ jobs:
       # Deploy Lambdas
       - name: Serverless Deploy
         working-directory: ./integration_tests
-        run: serverless deploy
+        run: sls deploy
