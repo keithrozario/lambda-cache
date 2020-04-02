@@ -1,4 +1,4 @@
-name: Deploy and Test
+name: Test
 
 # Triggers
 on:
@@ -34,4 +34,9 @@ jobs:
 
       - name: Test with pytest
         working-directory: ./tests
-        run: poetry run pytest test_ssm_cache.py
+        run: poetry run pytest test_ssm_cache.py --cov ../aws_lambda_cache
+
+      - name: Test with Lambda
+        working-directory: ./tests
+        run: poetry run pytest test_deployed_lambda.py --cov ../aws_lambda_cache
+        
