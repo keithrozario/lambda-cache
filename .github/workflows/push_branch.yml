@@ -25,11 +25,10 @@ jobs:
 
       # Install SLS
       - name: Serverless Install
-        working-directory: ./integration_test
-        run: npm i -g serverless@1.54.0
+        working-directory: ./integration_tests
+        run: npm install -g serverless@1.54.0
       
+      # Deploy Lambdas
       - name: Serverless Deploy
-        working-directory: ./integration_test
+        working-directory: ./integration_tests
         run: serverless deploy
-
-        
