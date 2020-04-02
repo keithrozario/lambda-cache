@@ -24,13 +24,13 @@ jobs:
 
 
       # Install poetry
-      - name: Poetry Install
+      - name: Install Poetry
         run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
       
-      - name: Poetry Install
+      - name: Setup Poetry
         run: source $HOME/.poetry/env && poetry update && poetry install
       
-      - name: Pytest run
+      - name: Run Test..
         working-directory: ./tests
         run: source $HOME/.poetry/env && poetry shell && pytest test_ssm_cache.py::parameter_not_exist_var_handler
 
