@@ -20,17 +20,32 @@ jobs:
       - name: Set up Python 3.7
         uses: actions/setup-python@v1
         with:
-          python-version: 3.8
+          python-version: 3.7
 
-
-      # Install poetry
       - name: Install Poetry
-        run: wget https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py && python3 get-poetry.py --yes && poetry config virtualenvs.create false
+        uses: dschep/install-poetry-action@v1.2
 
-      - name: Setup Poetry
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: ~/.virtualenvs
+          key: poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            poetry-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Set Poetry config
+        run: |
+          poetry config settings.virtualenvs.in-project false
+          poetry config settings.virtualenvs.path ~/.virtualenvs
+
+      - name: Install Dependencies
         run: poetry install
-      
-      - name: Run Test..
-        working-directory: ./tests
-        run: poetry shell pytest test_ssm_cache.py::parameter_not_exist_var_handler
+        if: steps.cache.outputs.cache-hit != 'true'
 
+      - name: Code Quality
+        run: poetry run black . --check
+
+      - name: Test with pytest
+        working-directory: ./tests
+        run: poetry run pytest test_ssm_cache.py
