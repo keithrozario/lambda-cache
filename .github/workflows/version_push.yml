@@ -25,7 +25,7 @@ jobs:
 
       # Install poetry
       - name: Install Poetry
-        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py && python get-poetry.py --yes && poetry config virtualenvs.create false
+        run: wget https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py && python3 get-poetry.py --yes && poetry config virtualenvs.create false
 
       - name: Setup Poetry
         run: poetry install
