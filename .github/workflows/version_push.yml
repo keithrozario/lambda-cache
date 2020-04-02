@@ -1,0 +1,21 @@
+name: Deploy and Test
+
+# Triggers
+on:
+  push:
+    branches:
+      - 'github_actions*'
+      - 'release'
+
+# Specify what jobs to run
+jobs:
+  sls_deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v1 
+
+      # Install npm and it's dependencies
+      - name: Poetry Install
+        run: pip install poetry
