@@ -15,11 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v1 
+      - uses: actions/checkout@v1
+      
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
 
-      # Install npm and it's dependencies
+
+      # Install poetry
       - name: Poetry Install
-        run: pip install poetry
+        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
       
       - name: Poetry Update
         run: poetry install
