@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - 'github_actions*'
+      - 'version*'
       - 'release'
 
 # Specify what jobs to run
@@ -19,3 +20,10 @@ jobs:
       # Install npm and it's dependencies
       - name: Poetry Install
         run: pip install poetry
+      
+      - name: Poetry Update
+        run: poetry install
+      
+      - name: Activate Poetry Shell
+        run: poetry shell
+
