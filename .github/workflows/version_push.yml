@@ -29,4 +29,8 @@ jobs:
       
       - name: Poetry Install
         run: source $HOME/.poetry/env && poetry update && poetry install
+      
+      - name: Pytest run
+        working-directory: ./tests
+        run: source $HOME/.poetry/env && poetry shell && pytest test_ssm_cache.py::parameter_not_exist_var_handler
 
