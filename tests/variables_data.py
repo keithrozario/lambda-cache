@@ -19,4 +19,12 @@ string_list_parameter = "/lambda/cache/test/somelist"
 string_list_value = "a,b,c"
 string_list_default_name = "somelist"
 
-default_entry_name = "lambda_cache"
+secret_name_string = "/lambda_cache/test/secret_string"
+secret_name_string_value = "This is a secret /@#$"
+secret_string_default_name = "secret_string"
+
+secret_name_binary = "/lambda_cache/test/secret_binary"
+secret_name_binary_value = "this is a secret in binary".encode('utf-8')
+secret_binary_default_name = "secret_binary"
+
+default_entry_name = "context_lambda_cache"
