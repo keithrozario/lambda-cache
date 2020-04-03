@@ -20,6 +20,7 @@ license = "Apache Software License"
 [tool.poetry.dependencies]
 python = "^3.6"
 pytest-cov = "^2.8.1"
+coverage = "^5.0.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"

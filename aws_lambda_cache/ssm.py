@@ -1,7 +1,8 @@
 import functools
 import boto3
 
-from .caching_logic import check_cache
+from .caching_logic import check_cache, get_entry_name
+from .exceptions import ArgumentTypeNotSupportedError
 
 
 def ssm_cache(parameter, ttl_seconds=60, var_name=False):
@@ -23,7 +24,7 @@ def ssm_cache(parameter, ttl_seconds=60, var_name=False):
         def inner_function(event, context):
 
             response = check_cache(
-                parameter=parameter,
+                argument=parameter,
                 ttl_seconds=ttl_seconds,
                 entry_name=var_name,
                 miss_function=get_parameter_from_ssm,
@@ -38,7 +39,7 @@ def ssm_cache(parameter, ttl_seconds=60, var_name=False):
     return decorator
 
 
-def get_ssm_cache(parameter, ttl_seconds=60):
+def get_ssm_cache(parameter, ttl_seconds=60, var_name=False):
     """
     Wrapper function for parameter_caching
 
@@ -52,9 +53,9 @@ def get_ssm_cache(parameter, ttl_seconds=60):
     """
 
     response = check_cache(
-        parameter=parameter,
+        argument=parameter,
         ttl_seconds=ttl_seconds,
-        entry_name=f"ssm-{parameter}", #use the parameter name as the entry name in cache to avoid conflict
+        entry_name=var_name,
         miss_function=get_parameter_from_ssm,
     )
     parameter_value = list(response.values())[0]
@@ -66,17 +67,32 @@ def get_parameter_from_ssm(parameter):
     Gets parameter value from the System manager Parameter store
 
     Args:
-        parameter(string): Name of the parameter in System Manager Parameter Store
+        parameter(string / list): Name of the parameter(s) in System Manager Parameter Store
     Returns:
-        parameter_value (string): Value of parameter in Parameter Store
+        parameter_value (string): Single Value of parameter in Parameter Store; or
+        parameters (list): List of Values from Parameter Store
     """
 
     ssm_client = boto3.client("ssm")
-    response = ssm_client.get_parameter(Name=parameter, WithDecryption=True)
-    parameter_value = response["Parameter"]["Value"]
 
-    # return StringList
-    if response["Parameter"]["Type"] == "StringList":
-        parameter_value = parameter_value.split(",")
+    if isinstance(parameter, str):
+        response = ssm_client.get_parameter(Name=parameter, WithDecryption=True)
+        parameter_value = response["Parameter"]["Value"]
+        # return StringList
+        if response["Parameter"]["Type"] == "StringList":
+            parameter_value = parameter_value.split(",")
+        return parameter_value
 
-    return parameter_value
+    elif isinstance(parameter, list):
+        response = ssm_client.get_parameters(Names=parameter, WithDecryption=True)
+        parameters = {}
+        for param in response['Parameters']:
+            param_name = get_entry_name(param['Name'], False)
+            if param['Type'] == 'StringList':
+                parameters[param_name] = param['Value'].split(',')
+            else:
+                parameters[param_name] = param['Value']
+        return parameters
+    
+    else:
+        raise ArgumentTypeNotSupportedError('Only str or list of str supported for ssm_cache')

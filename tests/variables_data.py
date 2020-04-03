@@ -18,3 +18,5 @@ long_name_default_name = "11"
 string_list_parameter = "/lambda/cache/test/somelist"
 string_list_value = "a,b,c"
 string_list_default_name = "somelist"
+
+default_entry_name = "lambda_cache"

@@ -1,6 +1,7 @@
 from aws_lambda_cache import __version__
 from aws_lambda_cache import ssm_cache
 from aws_lambda_cache import get_ssm_cache
+from aws_lambda_cache.exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
 
 import time
 import random, string
@@ -190,12 +191,10 @@ def string_list(event, context):
     return event
 
 
-
 def test_string_list():
     dummy_value = 'd,e,f'
     dummy_value_return = dummy_value.split(',')
 
-    
     return_list = string_list({},{}).get(string_list_default_name)
     assert return_list == string_list_value.split(',')
     
@@ -212,3 +211,73 @@ def test_string_list():
     time.sleep(2)
     return_list = string_list({},{}).get(string_list_default_name)
     assert return_list == string_list_value.split(',')
+
+# Test invalid parameter
+@ssm_cache(parameter=123)
+def invalid_parameter(event, context):
+    return event
+
+def test_invalid_parameter():
+
+    with pytest.raises(ArgumentTypeNotSupportedError) as e:
+        returned_value = invalid_parameter({}, {})
+        assert e['Code'] == "ArgumentTypeNotSupportedError"
+
+    with pytest.raises(ArgumentTypeNotSupportedError) as e:
+        get_ssm_cache(parameter=123, ttl_seconds=4)
+        assert e['Code'] == "ArgumentTypeNotSupportedError"
+    
+    with pytest.raises(NoEntryNameError) as e:
+        get_ssm_cache(parameter={'dummy': 'dict'}, ttl_seconds=2)
+        assert e['Code'] == "NoEntryNameError"
+    
+    with pytest.raises(NoEntryNameError) as e:
+        get_ssm_cache(parameter=['abc','_'], ttl_seconds=2)
+        assert e['Code'] == "NoEntryNameError"
+
+# Test get_parameters
+@ssm_cache(parameter=[ssm_parameter, ssm_parameter_2, string_list_parameter, secure_parameter], var_name=default_entry_name, ttl_seconds=2)
+def multi_parameters(event, context):
+    return event
+
+def test_multi_parameters():
+
+    dummy_string = "__"
+    dummy_list = "-,--,---"
+
+    event = multi_parameters({},{})
+    assert event.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
+    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
+    assert event.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
+    assert event.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
+
+    update_parameter(ssm_parameter, dummy_string)
+    update_parameter(ssm_parameter_2, dummy_string)
+    update_parameter(secure_parameter, dummy_string, param_type='SecureString')
+    update_parameter(string_list_parameter, dummy_list, param_type='StringList')
+    event = multi_parameters({},{})
+    assert event.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
+    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
+    assert event.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
+    assert event.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
+
+    time.sleep(2)
+    event = multi_parameters({},{})
+    assert event.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
+    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
+    assert event.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
+    assert event.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
+
+    test_initialize()
+    event = multi_parameters({},{})
+    assert event.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
+    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
+    assert event.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
+    assert event.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
+    
+    time.sleep(2)
+    event = multi_parameters({},{})
+    assert event.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
+    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
+    assert event.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
+    assert event.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value

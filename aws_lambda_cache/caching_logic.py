@@ -1,7 +1,9 @@
 import time
 
+from .exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
 
-def check_cache(parameter, ttl_seconds, entry_name, miss_function):
+
+def check_cache(argument, ttl_seconds, entry_name, miss_function):
     """
     Executes the caching logic, checks cache for entry
     If entry doesn't exist, returns entry_value by calling the miss function with entry_name and var_name
@@ -10,51 +12,61 @@ def check_cache(parameter, ttl_seconds, entry_name, miss_function):
         If entry_age >= ttl_seconds, returns value by calling miss_function
 
     Args:
-        parameter(string): Name of the parameter ()
+        argument (string, list, dict) : argument to be passed to the missed function
         ttl_seconds(int) : Time to Live of the entry in seconds
-        entry_name(string) : Optional name of entry in cache, and variable injected into event object
-        miss_function(function): Function to execute when there is a miss on the cache
+        entry_name(string) : Name of entry in cache, is also the name of the entry in the event object
+        miss_function(function): Function to execute when there is a miss on the cache or cache is expired
     Returns:
         entry_value(dict)  : {entry_name: entry_value}
     """
 
-    entry_name = get_entry_name(parameter, entry_name)
+    entry_name = get_entry_name(argument, entry_name)
     entry_age = get_entry_age(entry_name)
 
     if entry_age is None:
-        entry_value = miss_function(parameter)
+        entry_value = miss_function(argument)
         update_cache(entry_name, entry_value)
     elif entry_age < ttl_seconds:
         entry_value = get_entry_from_cache(entry_name)
     else:
-        entry_value = miss_function(parameter)
+        entry_value = miss_function(argument)
         update_cache(entry_name, entry_value)
 
     return {entry_name: entry_value}
 
 
-def get_entry_name(parameter, entry_name):
+def get_entry_name(argument, entry_name):
     """
-    Parameter is either SSM Parameter, Secret in Secrets Manager or Key in S3 bucket:
+    argument is either SSM Parameter, Secret in Secrets Manager or Key in S3 bucket:
         SSM Parameter names can include only the following symbols and letters: a-zA-Z0-9_.-/
         Secret name must be ASCII letters, digits, or the following characters : /_+=.@-
         S3 Keys can have a varied characters
 
     if entry_name is set, we return entry_name
-    if entry_name is False, we default entry_name to the string after the last '/' in parameter
+    if entry_name is False, 
+        if entry_name is a string, Default entry_name to the string after the last '/' in argument
 
     Args:
-        parameter(string)  : Name of the parameter
+        argument (string, list, dict) : argument to be passed to the missed function
         entry_name(string) : Optional name of entry in cache, and variable injected into event object
     Returns:
         cache_entry_name   : Name of Entry in the cache
     """
 
-    if entry_name:
-        cache_entry_name = entry_name
-    else:
-        cache_entry_name = parameter.split("/")[-1]
+    if isinstance(argument, str):
+        if entry_name:
+            cache_entry_name = entry_name
+        else:
+            cache_entry_name = argument.split("/")[-1]
 
+    elif isinstance(argument, list) or isinstance(argument, dict):
+        if not entry_name:
+            raise NoEntryNameError("You must specify an entry_name for arguments of type list or dict")
+        else:
+            cache_entry_name = entry_name
+    else:
+        raise ArgumentTypeNotSupportedError("Only str, list and dict accepted as input")
+    
     return cache_entry_name
 
 
