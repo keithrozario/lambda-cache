@@ -1,0 +1,41 @@
+name: Test
+
+# Triggers
+on:
+  push:
+    branches:
+      - 'github_actions*'
+      - 'version*'
+      - 'release'
+
+# Specify what jobs to run
+jobs:
+  sls_deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-southeast-1
+    
+    steps:
+      - uses: actions/checkout@v1
+      
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Install Poetry
+        uses: dschep/install-poetry-action@v1.2
+
+      - name: Install Dependencies
+        run: poetry install
+
+      - name: Test with pytest
+        working-directory: ./tests
+        run: poetry run pytest test_ssm_cache.py --cov ../aws_lambda_cache --cov-report term-missing -vv
+
+      # - name: Test with Lambda
+      #   working-directory: ./tests
+      #   run: poetry run pytest test_deployed_lambda.py
