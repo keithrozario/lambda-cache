@@ -289,3 +289,36 @@ def test_multi_parameters():
     assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
     assert context.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
     assert context.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
+
+# Test Parameter Caching TTL settings
+@ssm_cache(parameter=ssm_parameter, ttl_seconds=10)
+def invalidate_cache(event, context):
+    if event.get('refresh', False):
+        result = get_ssm_cache(ssm_parameter, ttl_seconds=0)
+        context[ssm_parameter_default_name] = result
+    return context
+
+def test_invalidate_cache():
+    
+    updated_value = 'Dummy Value NEW!!'
+
+    refresh_event = {'refresh': True}
+
+    context = invalidate_cache({}, {})
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
+    
+    # Update parameter and test within 5 seconds
+    update_parameter(ssm_parameter, updated_value)
+    time.sleep(5)
+    context = invalidate_cache({}, {})
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
+
+    # Wait 5 seconds call again, parameter should be refreshed
+    time.sleep(5)
+    context = invalidate_cache({}, {})
+    assert context.get(ssm_parameter_default_name) == updated_value
+
+    # Update parameter back to ssm_parameter_value, but call with invalidated cache
+    update_parameter(ssm_parameter, ssm_parameter_value)
+    context = invalidate_cache(refresh_event, {})
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value

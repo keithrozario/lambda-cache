@@ -1,82 +1,143 @@
 # AWS Lambda Cache
-Python utility for caching SSM parameters in AWS Lambda functions.
+Caching utility for AWS Lambda functions.
 
-![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=red?style=flat-square) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7|%203.8&color=blue?style=flat-square&logo=python)
+![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=red?style=flat-square) 
+![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7|%203.8&color=blue?style=flat-square&logo=python)
 
-![Test](https://github.com/keithrozario/aws_lambda_cache/workflows/Test/badge.svg) 
+![Test](https://github.com/keithrozario/aws_lambda_cache/workflows/Test/badge.svg) [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/keithrozario/aws_lambda_cache.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/keithrozario/aws_lambda_cache/context:python)
 
-## Simple use case
+# Basics
 
-To cache a parameter for 300 seconds, simply decorate your handler function as follows:
+This is python package prioritizes simplicity over everything else. The goal is to provide the simplest way for developers to include caching in their AWS Lambda functions. 
+
+Currently only SSM Parameters and Secrets from Secrets Manager are supported.
+
+## Cache single parameter
+
+To cache a parameter from ssm, decorate your handler function, and grab the parameter from the context object as follows:
 
 ```python
+from aws_lambda_cache import ssm_cache
 
+@ssm_cache(parameter='/production/app/var')
+def handler(event, context):
+    var = context.get('var')
+    response = do_something(var)
+    return response
+```
+
+## Change cache settings
+
+The default `ttl_seconds` settings is 60 seconds, it defines how long a parameter should be kept in cache before it is refreshed from ssm. To configure longer or shorter times, modify this argument in the decorator like so:
+
+```python
 from aws_lambda_cache import ssm_cache
 
 @ssm_cache(parameter='/production/app/var', ttl_seconds=300)
 def handler(event, context):
-
-    cached_value = event.get('var')
-    event_var = event.get('body')
-    response = do_something(cached_value, event_var)
-
+    var = context.get('var')
+    response = do_something(var)
     return response
-
 ```
 
-## Multiple variables
+## Change cache entry settings
 
-To cache multiple parameters, you can stack multiple decorators on top of each other:
+For simplicity the name of the parameter is automatically shortened to the string after the last slash('/') character. This allows both `/production/app/var` and `test/app/var` resolve to just `var`. To over-ride this default, use the `entry_name` argument for the decorator:
 
 ```python
-
 from aws_lambda_cache import ssm_cache
 
-@ssm_cache(parameter='/production/app/var_1', ttl_seconds=300)
-@ssm_cache(parameter='/production/app/var_2', ttl_seconds=600)
+@ssm_cache(parameter='/production/app/var', entry_name='new_var')
 def handler(event, context):
-
-    cached_value_1 = event.get('var_1')
-    cached_value_2 = event.get('var_2')
-    event_var = event.get('body')
-    response = do_something(cached_value, event_var)
-
+    var = context.get('new_var')
+    response = do_something(var)
     return response
-
 ```
 
-## Rename parameter
+## Cache multiple parameters
 
-The parameter is injected into the event of the handling function, using the last name of the parameter as the variable name in the event.
-
-e.g. 
-* /app1/prod/name -> event.name
-* /app1/dev/config/startDate -> event.startDate (note case-sensitivity)
-
-to give the parameter a specific variable name, use the var_name argument in the decorator call.
+To cache multiple entries at once, pass a list of parameters to the parameter argument, and grab the parameters from `context['parameters']`.
 
 ```python
-
 from aws_lambda_cache import ssm_cache
 
-@ssm_cache(parameter='/app1/prod/name', ttl_seconds=300, var_name='customer_name')
-@ssm_cache(parameter='/app1/dev/config/startDate', ttl_seconds=600, var_name='customer_start_date')
+@ssm_cache(parameter=['/app/var1', '/app/var2'], entry_name='parameters')
 def handler(event, context):
-
-    cached_value_1 = event.get('customer_name')
-    cached_value_2 = event.get('customer_start_date')
-    response = do_something(cached_value_1, cached_value_2)
-
+    var1 = context.get('parameters').get('var1')
+    var2 = context.get('parameters').get('var2')
+    response = do_something(var)
     return response
-
 ```
 
-## Special configuration
+## Decorator stacking
+If you wish to cache multiple parameters with different expiry times, stack the decorators. In this example, `var1` will be refreshed every 30 seconds, `var2` will be refreshed after 60.
+
+Note: Decorator stacking performs one API call per decorator, while passing a list to the parameter argument results in just one API call for better performance.
+
+```python
+@ssm_cache(parameter='/production/app/var1', ttl_seconds=30)
+@ssm_cache(parameter='/production/app/var2', ttl_seconds=60)
+def handler(event, context):
+    var1 = context.get('var1')
+    var2 = context.get('var2')
+    response = do_something(var)
+    return response
+```
+
+## Cache invalidation
+
+If you require a fresh value, you can force a refresh using the `get_ssm_cache` function, and setting the `ttl_seconds` argument to 0.
+
+```python
+from aws_lambda_cache import ssm_cache, get_ssm_cache
+
+@ssm_cache(parameter='/production/app/var')
+def handler(event, context):
+
+    if event.get('refresh'):
+        var = get_ssm_cache(parameter='/production/app/var', ttl_seconds=0)
+    else:
+        var = context.get('var')
+    response = do_something(var)
+    return response
+```
 
 To disable cache, and GetParameter on every invocation, set `ttl_seconds=0`,  to only get parameter once in the lifetime of the function, set `ttl_seconds` to some arbitary large number ~36000 (10 hours).
 
-# Status
+## Return Values
 
-Currently supports parameters of type `String` and `SecureString`. `StringList` support is working but not tested.
+Caching supports `String`, `SecureString` and `StringList` parameters with no change required (ensure you have `kms:Decrypt` permission for `SecureString`). For simplicity, `StringList` parameters are automatically converted into list (delimited by '/').
 
-# The End
+# Secrets Manager
+
+```python
+from aws_lambda_cache import secret_cache
+
+@secret_cache(name='/prod/db/conn_string')
+def handler(event, context):
+    conn_string = context.get('conn_string')
+    return context
+```
+
+The secrets manager uses the same API as ssm, and hence supports all the previously mentioned features including `ttl_seconds`, `entry_name` and cache invalidation.
+
+## Cache Invalidation
+
+To invalidate a secret, use the `get_secret_cache`, setting the `ttl_seconds=0`.
+```python
+from aws_lambda_cache import secret_cache, get_secret_cache
+
+@secret_cache(name='/prod/db/conn_string')
+def handler(event, context):
+
+    if event.get('refresh'):
+        var = get_secret_cache(parameter='/prod/db/conn_string', ttl_seconds=0)
+    else:
+        var = context.get('conn_string')
+    response = do_something(var)
+    return response
+```
+
+## Return Values
+
+Secrets Manager supports both string and binary secrets. For simplicity we will cache the secret in the format it is stored.

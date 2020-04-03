@@ -73,14 +73,12 @@ def get_secret_from_secrets_manager(name):
     """
 
     if isinstance(name, str):
-        secrets_client = boto3.client('secretsmanager')
-        response = secrets_client.get_secret_value(
-            SecretId=name
-        )
-        if response.get('SecretString') is not None:
-            return_value = response['SecretString']
+        secrets_client = boto3.client("secretsmanager")
+        response = secrets_client.get_secret_value(SecretId=name)
+        if response.get("SecretString") is not None:
+            return_value = response["SecretString"]
         else:
-            return_value = response['SecretBinary']
+            return_value = response["SecretBinary"]
     else:
         raise ArgumentTypeNotSupportedError(
             f"Secrets Manager only supports str arguments: {name} is not a string"
