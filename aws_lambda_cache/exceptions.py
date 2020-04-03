@@ -1,6 +1,8 @@
 class LambdaCacheError(Exception):
     """Base class for exceptions in this module."""
+
     pass
+
 
 class ArgumentTypeNotSupportedError(LambdaCacheError):
     """
@@ -11,6 +13,7 @@ class ArgumentTypeNotSupportedError(LambdaCacheError):
     def __init__(self, message=False):
         self.message = "Only arguments of type str or list of strs supported"
         self.Code = "ArgumentTypeNotSupportedError"
+
 
 class NoEntryNameError(LambdaCacheError):
     """

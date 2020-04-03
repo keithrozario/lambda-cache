@@ -65,52 +65,52 @@ def parameter_assignment(parameter, parameter_value, parameter_type='String'):
 
 @ssm_cache(parameter="/some/nonexist/parameter")
 def parameter_not_exist_var_handler(event, context):
-    return event
+    return context
 
 def test_non_existing_parameter():
     
     test_event = {'event_name': 'test'}
     test_context = {}
     with pytest.raises(ClientError) as e:
-        event = parameter_not_exist_var_handler(test_event, test_context)
+        context = parameter_not_exist_var_handler(test_event, test_context)
         assert e['Error']['Code'] == "ParameterNotFound"
 
 
 # Test parameter import and stacking
 @ssm_cache(parameter=ssm_parameter)
 def single_var_handler(event, context):
-    return event
+    return context
 
 @ssm_cache(parameter=ssm_parameter)
 @ssm_cache(parameter=ssm_parameter_2)
 def double_var_handler(event, context):
-    return event
+    return context
 
 
 @ssm_cache(parameter=long_name_parameter)
 def long_name_var_handler(event,context):
-    return event
+    return context
 
 def test_var_handlers():
 
     test_event = {'event_name': 'test'}
     test_context = {}
 
-    event = single_var_handler(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = single_var_handler(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
     
-    event = double_var_handler(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == ssm_parameter_value
-    assert event.get(ssm_parameter_2_default_name) == ssm_parameter_2_value
+    context = double_var_handler(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
+    assert context.get(ssm_parameter_2_default_name) == ssm_parameter_2_value
 
-    event = long_name_var_handler(test_event, test_context)
-    assert event.get(long_name_default_name) == long_name_value
+    context = long_name_var_handler(test_event, test_context)
+    assert context.get(long_name_default_name) == long_name_value
 
 
 # Test Parameter Caching TTL settings
 @ssm_cache(parameter=ssm_parameter, ttl_seconds=5)
 def five_second_ttl(event, context):
-    return event
+    return context
 
 def test_cache():
     
@@ -119,76 +119,76 @@ def test_cache():
     test_event = {'event_name': 'test'}
     test_context = {}
 
-    event = five_second_ttl(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = five_second_ttl(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
     
     # Update parameter but call before 5 seconds
     update_parameter(ssm_parameter, updated_value)
-    event = five_second_ttl(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = five_second_ttl(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
 
     # Wait 5 seconds call again
     time.sleep(5)
-    event = five_second_ttl(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == updated_value
+    context = five_second_ttl(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == updated_value
 
     # Revert back to normal
     update_parameter(ssm_parameter, ssm_parameter_value)
     time.sleep(5)
-    event = five_second_ttl(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = five_second_ttl(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
 
 # Test Parameter Rename
-@ssm_cache(parameter=ssm_parameter, var_name=ssm_parameter_replaced_var_name)
+@ssm_cache(parameter=ssm_parameter, entry_name=ssm_parameter_replaced_var_name)
 def renamed_var(event, context):
-    return event
+    return context
 
 def test_rename_parameter():
 
     test_event = {'event_name': 'test'}
     test_context = {}
 
-    event = renamed_var(test_event, test_context)
-    assert event.get(ssm_parameter_replaced_var_name) == ssm_parameter_value
+    context = renamed_var(test_event, test_context)
+    assert context.get(ssm_parameter_replaced_var_name) == ssm_parameter_value
 
 # Test Secure String import
 @ssm_cache(parameter=secure_parameter)
 def secure_var_handler(event,context):
-    return event
+    return context
 
 def test_secure_string():
 
     test_event = {'event_name': 'test'}
     test_context = {}
 
-    event = secure_var_handler(test_event, test_context)
-    assert event.get(secure_parameter_default_name) == secure_parameter_value
+    context = secure_var_handler(test_event, test_context)
+    assert context.get(secure_parameter_default_name) == secure_parameter_value
 
 # Test ttl_seconds=0 settings, no cache
 @ssm_cache(parameter=ssm_parameter, ttl_seconds=0)
 def no_cache(event, context):
-    return event
+    return context
 
 def test_no_cache():
     test_event = {'event_name': 'test'}
     test_context = {}
     new_value = "New Value"
 
-    event = no_cache(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = no_cache(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
     
     update_parameter(ssm_parameter, new_value)
-    event = no_cache(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == new_value
+    context = no_cache(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == new_value
 
     update_parameter(ssm_parameter, ssm_parameter_value)
-    event = no_cache(test_event, test_context)
-    assert event.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = no_cache(test_event, test_context)
+    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
 
 # Test StringList with cache
 @ssm_cache(parameter=string_list_parameter, ttl_seconds=2)
 def string_list(event, context):
-    return event
+    return context
 
 
 def test_string_list():
@@ -213,9 +213,9 @@ def test_string_list():
     assert return_list == string_list_value.split(',')
 
 # Test invalid parameter
-@ssm_cache(parameter=123)
+@ssm_cache(parameter=123, entry_name="hello")
 def invalid_parameter(event, context):
-    return event
+    return context
 
 def test_invalid_parameter():
 
@@ -223,61 +223,69 @@ def test_invalid_parameter():
         returned_value = invalid_parameter({}, {})
         assert e['Code'] == "ArgumentTypeNotSupportedError"
 
-    with pytest.raises(ArgumentTypeNotSupportedError) as e:
+    with pytest.raises(NoEntryNameError) as e:
         get_ssm_cache(parameter=123, ttl_seconds=4)
-        assert e['Code'] == "ArgumentTypeNotSupportedError"
+        assert e['Code'] == "NoEntryNameError"
     
     with pytest.raises(NoEntryNameError) as e:
         get_ssm_cache(parameter={'dummy': 'dict'}, ttl_seconds=2)
         assert e['Code'] == "NoEntryNameError"
+    
+    with pytest.raises(ArgumentTypeNotSupportedError) as e:
+        get_ssm_cache(parameter=123, ttl_seconds=2, entry_name="hello")
+        assert e['Code'] == "ArgumentTypeNotSupportedError"
+
+    with pytest.raises(ArgumentTypeNotSupportedError) as e:
+        get_ssm_cache(parameter=(123,123), ttl_seconds=2, entry_name="hello")
+        assert e['Code'] == "ArgumentTypeNotSupportedError"
     
     with pytest.raises(NoEntryNameError) as e:
         get_ssm_cache(parameter=['abc','_'], ttl_seconds=2)
         assert e['Code'] == "NoEntryNameError"
 
 # Test get_parameters
-@ssm_cache(parameter=[ssm_parameter, ssm_parameter_2, string_list_parameter, secure_parameter], var_name=default_entry_name, ttl_seconds=10)
+@ssm_cache(parameter=[ssm_parameter, ssm_parameter_2, string_list_parameter, secure_parameter], entry_name=default_entry_name, ttl_seconds=10)
 def multi_parameters(event, context):
-    return event
+    return context
 
 def test_multi_parameters():
 
     dummy_string = "__"
     dummy_list = "-,--,---"
 
-    event = multi_parameters({},{})
-    assert event.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
-    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
-    assert event.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
-    assert event.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
+    context = multi_parameters({},{})
+    assert context.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
+    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
+    assert context.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
+    assert context.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
 
     update_parameter(ssm_parameter, dummy_string)
     update_parameter(ssm_parameter_2, dummy_string)
     update_parameter(secure_parameter, dummy_string, param_type='SecureString')
     update_parameter(string_list_parameter, dummy_list, param_type='StringList')
-    event = multi_parameters({},{})
-    assert event.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
-    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
-    assert event.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
-    assert event.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
+    context = multi_parameters({},{})
+    assert context.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
+    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
+    assert context.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
+    assert context.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
 
     time.sleep(10)
-    event = multi_parameters({},{})
-    assert event.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
-    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
-    assert event.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
-    assert event.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
+    context = multi_parameters({},{})
+    assert context.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
+    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
+    assert context.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
+    assert context.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
 
     test_initialize()
-    event = multi_parameters({},{})
-    assert event.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
-    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
-    assert event.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
-    assert event.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
+    context = multi_parameters({},{})
+    assert context.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
+    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
+    assert context.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
+    assert context.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
     
     time.sleep(10)
-    event = multi_parameters({},{})
-    assert event.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
-    assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
-    assert event.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
-    assert event.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
+    context = multi_parameters({},{})
+    assert context.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
+    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
+    assert context.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
+    assert context.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value

@@ -59,14 +59,18 @@ def get_entry_name(argument, entry_name):
         else:
             cache_entry_name = argument.split("/")[-1]
 
-    elif isinstance(argument, list) or isinstance(argument, dict):
+    elif type(argument) in [int, list, dict]:
         if not entry_name:
-            raise NoEntryNameError("You must specify an entry_name for arguments of type list or dict")
+            raise NoEntryNameError(
+                "You must specify an entry_name for arguments of type list, dict or int"
+            )
         else:
             cache_entry_name = entry_name
     else:
-        raise ArgumentTypeNotSupportedError("Only str, list and dict accepted as input")
-    
+        raise ArgumentTypeNotSupportedError(
+            "Argument can only be of Type str, int, list or dict"
+        )
+
     return cache_entry_name
 
 
