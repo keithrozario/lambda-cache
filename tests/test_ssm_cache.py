@@ -236,7 +236,7 @@ def test_invalid_parameter():
         assert e['Code'] == "NoEntryNameError"
 
 # Test get_parameters
-@ssm_cache(parameter=[ssm_parameter, ssm_parameter_2, string_list_parameter, secure_parameter], var_name=default_entry_name, ttl_seconds=3)
+@ssm_cache(parameter=[ssm_parameter, ssm_parameter_2, string_list_parameter, secure_parameter], var_name=default_entry_name, ttl_seconds=10)
 def multi_parameters(event, context):
     return event
 
@@ -261,7 +261,7 @@ def test_multi_parameters():
     assert event.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
     assert event.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
 
-    time.sleep(3)
+    time.sleep(10)
     event = multi_parameters({},{})
     assert event.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
     assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
@@ -275,7 +275,7 @@ def test_multi_parameters():
     assert event.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
     assert event.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
     
-    time.sleep(3)
+    time.sleep(10)
     event = multi_parameters({},{})
     assert event.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
     assert event.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
