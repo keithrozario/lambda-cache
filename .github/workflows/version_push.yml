@@ -45,7 +45,9 @@ jobs:
       - name: Update Test Coverage
         if: github.ref == 'refs/heads/release'  # only on the feature branch do we publish code coverage stats
         working-directory: ./tests
-        run: poetry run coveralls
+        run: |
+          poetry run coveralls debug
+          coveralls
       
       - name: Build
         if: github.ref == 'refs/heads/release'
