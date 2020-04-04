@@ -34,16 +34,12 @@ jobs:
       - name: Install Dependencies
         run: poetry install
 
-      # - name: Test with pytest
-      #   working-directory: ./tests
-      #   run: poetry run pytest test_ssm_cache.py --cov ../aws_lambda_cache --cov-report term-missing -vv
-      
-      # - name: Code Quality
-      #   run: poetry run black simple_lambda_cache --check
-
-      - name: Subset Test
+      - name: Test
         working-directory: ./tests
         run: poetry run pytest test_ssm_cache.py::test_initialize --cov ../simple_lambda_cache --cov-report term-missing -vv
+
+      # - name: Code Quality
+      #   run: poetry run black simple_lambda_cache --check
 
       # Only runs on release branch
       - name: Update Test Coverage
@@ -51,7 +47,7 @@ jobs:
         working-directory: ./tests
         run: |
           poetry run coveralls debug
-          coveralls
+          poetry run coveralls
       
       - name: Build
         if: github.ref == 'refs/heads/release'
