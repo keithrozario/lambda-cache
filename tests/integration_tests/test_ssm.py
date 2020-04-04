@@ -1,5 +1,5 @@
 import json
-from aws_lambda_cache import ssm_cache, get_ssm_cache
+from simple_lambda_cache import ssm_cache, get_ssm_cache
 
 # this file is packaged in the lambda using serverless.yml
 from tests.variables_data import *
@@ -37,10 +37,10 @@ def string_list(event, context):
 @ssm_cache(ssm_parameter, ttl_seconds=2)
 @ssm_cache(ssm_parameter_2, ttl_seconds=2)
 def multi_parameter(event, context):
-    message = {"param_1": event.get(ssm_parameter_default_name),
-               "param_2": event.get(ssm_parameter_2_default_name),
-               "param_3": event.get(string_list_default_name),
-               "param_4": event.get(secure_parameter_default_name)}
+    message = {"param_1": context.get(ssm_parameter_default_name),
+               "param_2": context.get(ssm_parameter_2_default_name),
+               "param_3": context.get(string_list_default_name),
+               "param_4": context.get(secure_parameter_default_name)}
     return generic_return(message)
 
 
@@ -50,3 +50,6 @@ def assign_parameter(event, context):
                "param_3": get_ssm_cache(parameter=string_list_parameter, ttl_seconds=40),
                "param_4": get_ssm_cache(parameter=secure_parameter)}
     return generic_return(message)
+
+@ssm_cache()
+def list_parameters(event,context):

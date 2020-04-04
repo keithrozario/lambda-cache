@@ -1,6 +1,6 @@
-from aws_lambda_cache import secret_cache
-from aws_lambda_cache import get_secret_cache
-from aws_lambda_cache.exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
+from simple_lambda_cache import secret_cache
+from simple_lambda_cache import get_secret_cache
+from simple_lambda_cache.exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
 
 import time
 import random, string
