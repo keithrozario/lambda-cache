@@ -131,7 +131,7 @@ from aws_lambda_cache import secret_cache, get_secret_cache
 def handler(event, context):
 
     if event.get('refresh'):
-        var = get_secret_cache(parameter='/prod/db/conn_string', ttl_seconds=0)
+        var = get_secret_cache(name='/prod/db/conn_string', ttl_seconds=0)
     else:
         var = context.get('conn_string')
     response = do_something(var)

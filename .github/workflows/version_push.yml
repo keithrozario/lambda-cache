@@ -4,19 +4,21 @@ name: Test
 on:
   push:
     branches:
-      - 'github_actions*'
-      - 'version*'
-      - 'release'
+      - '*'
+  pull_request:
+    branches:
+      - 'feature'
 
 # Specify what jobs to run
 jobs:
-  sls_deploy:
-    name: deploy
+  UnitTest:
+    name: UnitTest
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: ap-southeast-1
+      AWS_DEFAULT_REGION: us-east-1
+      COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }} 
     
     steps:
       - uses: actions/checkout@v1
@@ -36,11 +38,31 @@ jobs:
         working-directory: ./tests
         run: poetry run pytest test_ssm_cache.py --cov ../aws_lambda_cache --cov-report term-missing -vv
       
-      - name: Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Code Quality
+        run: poetry run black simple_lambda_cache --check
 
-      # - name: Test with Lambda
-      #   working-directory: ./tests
-      #   run: poetry run pytest test_deployed_lambda.py
+      # Only runs on release branch
+      - name: Update Test Coverage
+        if: github.ref == 'refs/heads/release'  # only on the feature branch do we publish code coverage stats
+        working-directory: ./tests
+        run: poetry run coveralls
+      
+      - name: Build
+        if: github.ref == 'refs/heads/release'
+        working-directory: .
+        run: poetry build
+      
+      - name: publish
+        if: github.ref == 'refs/heads/release'
+        working-directory: .
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish
+
+      - name: Archive production artifacts
+        if: github.ref == 'refs/heads/release'
+        uses: actions/upload-artifact@v1
+        with:
+          name: dist
+          path: dist
+

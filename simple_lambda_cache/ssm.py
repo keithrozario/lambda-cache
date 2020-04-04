@@ -1,7 +1,6 @@
-import functools
 import boto3
 
-from .caching_logic import check_cache, get_entry_name
+from .caching_logic import get_decorator, get_value, get_entry_name
 from .exceptions import ArgumentTypeNotSupportedError
 
 
@@ -19,25 +18,11 @@ def ssm_cache(parameter, ttl_seconds=60, entry_name=False):
 
     """
 
-    def decorator(func):
-        @functools.wraps(func)
-        def inner_function(event, context):
-
-            response = check_cache(
-                argument=parameter,
-                ttl_seconds=ttl_seconds,
-                entry_name=entry_name,
-                miss_function=get_parameter_from_ssm,
-            )
-            # Inject {parameter_name: parameter_value} into context object
-            context.update(response)
-
-            return func(event, context)
-
-        return inner_function
-
+    decorator = get_decorator(argument=parameter,
+                              ttl_seconds=ttl_seconds,
+                              entry_name=entry_name,
+                              miss_function=get_parameter_from_ssm)
     return decorator
-
 
 def get_ssm_cache(parameter, ttl_seconds=60, entry_name=False):
     """
@@ -52,15 +37,11 @@ def get_ssm_cache(parameter, ttl_seconds=60, entry_name=False):
         parameter_value(string)  : Value of the parameter
     """
 
-    response = check_cache(
-        argument=parameter,
-        ttl_seconds=ttl_seconds,
-        entry_name=entry_name,
-        miss_function=get_parameter_from_ssm,
-    )
-    parameter_value = list(response.values())[0]
+    parameter_value = get_value(argument=parameter,
+                                ttl_seconds=ttl_seconds,
+                                entry_name=entry_name,
+                                miss_function=get_parameter_from_ssm)
     return parameter_value
-
 
 def get_parameter_from_ssm(parameter):
     """

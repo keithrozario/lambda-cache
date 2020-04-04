@@ -1,6 +1,43 @@
 import time
+import functools
 
 from .exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
+
+def get_decorator(argument, ttl_seconds, entry_name, miss_function):
+    """
+    Returns generic decorator for wrapping handler
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def inner_function(event, context):
+
+            response = check_cache(
+                argument=argument,
+                ttl_seconds=ttl_seconds,
+                entry_name=entry_name,
+                miss_function=miss_function,
+            )
+            # Inject {parameter_name: parameter_value} into context object
+            context.update(response)
+
+            return func(event, context)
+
+        return inner_function
+
+    return decorator
+
+def get_value(argument, ttl_seconds, entry_name, miss_function):
+    """
+    returns value of check_cache.
+    """
+    response = check_cache(
+        argument=argument,
+        ttl_seconds=ttl_seconds,
+        entry_name=entry_name,
+        miss_function=miss_function
+    )
+    parameter_value = list(response.values())[0]
+    return parameter_value
 
 
 def check_cache(argument, ttl_seconds, entry_name, miss_function):
