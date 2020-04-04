@@ -3,10 +3,12 @@ import functools
 
 from .exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
 
+
 def get_decorator(argument, ttl_seconds, entry_name, miss_function):
     """
     Returns generic decorator for wrapping handler
     """
+
     def decorator(func):
         @functools.wraps(func)
         def inner_function(event, context):
@@ -26,6 +28,7 @@ def get_decorator(argument, ttl_seconds, entry_name, miss_function):
 
     return decorator
 
+
 def get_value(argument, ttl_seconds, entry_name, miss_function):
     """
     returns value of check_cache.
@@ -34,7 +37,7 @@ def get_value(argument, ttl_seconds, entry_name, miss_function):
         argument=argument,
         ttl_seconds=ttl_seconds,
         entry_name=entry_name,
-        miss_function=miss_function
+        miss_function=miss_function,
     )
     parameter_value = list(response.values())[0]
     return parameter_value

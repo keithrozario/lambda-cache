@@ -19,10 +19,12 @@ def secret_cache(name, ttl_seconds=60, entry_name=False):
 
     """
 
-    decorator = get_decorator(argument=name,
-                              ttl_seconds=ttl_seconds,
-                              entry_name=entry_name,
-                              miss_function=get_secret_from_secrets_manager)
+    decorator = get_decorator(
+        argument=name,
+        ttl_seconds=ttl_seconds,
+        entry_name=entry_name,
+        miss_function=get_secret_from_secrets_manager,
+    )
     return decorator
 
 
@@ -39,10 +41,12 @@ def get_secret_cache(name, ttl_seconds=60, entry_name=False):
         secret_value(string)  : Value of the parameter
     """
 
-    secret_value = get_value(argument=name,
-                                ttl_seconds=ttl_seconds,
-                                entry_name=entry_name,
-                                miss_function=get_secret_from_secrets_manager)
+    secret_value = get_value(
+        argument=name,
+        ttl_seconds=ttl_seconds,
+        entry_name=entry_name,
+        miss_function=get_secret_from_secrets_manager,
+    )
     return secret_value
 
 

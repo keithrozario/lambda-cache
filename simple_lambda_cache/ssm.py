@@ -18,11 +18,14 @@ def ssm_cache(parameter, ttl_seconds=60, entry_name=False):
 
     """
 
-    decorator = get_decorator(argument=parameter,
-                              ttl_seconds=ttl_seconds,
-                              entry_name=entry_name,
-                              miss_function=get_parameter_from_ssm)
+    decorator = get_decorator(
+        argument=parameter,
+        ttl_seconds=ttl_seconds,
+        entry_name=entry_name,
+        miss_function=get_parameter_from_ssm,
+    )
     return decorator
+
 
 def get_ssm_cache(parameter, ttl_seconds=60, entry_name=False):
     """
@@ -37,11 +40,14 @@ def get_ssm_cache(parameter, ttl_seconds=60, entry_name=False):
         parameter_value(string)  : Value of the parameter
     """
 
-    parameter_value = get_value(argument=parameter,
-                                ttl_seconds=ttl_seconds,
-                                entry_name=entry_name,
-                                miss_function=get_parameter_from_ssm)
+    parameter_value = get_value(
+        argument=parameter,
+        ttl_seconds=ttl_seconds,
+        entry_name=entry_name,
+        miss_function=get_parameter_from_ssm,
+    )
     return parameter_value
+
 
 def get_parameter_from_ssm(parameter):
     """
