@@ -11,7 +11,7 @@ on:
 
 # Specify what jobs to run
 jobs:
-  UnitTest:
+  TestBuildDeploy:
     name: UnitTest
     runs-on: ubuntu-latest
     env:
