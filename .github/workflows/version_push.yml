@@ -12,7 +12,7 @@ on:
 # Specify what jobs to run
 jobs:
   TestBuildDeploy:
-    name: UnitTest
+    name: Test, Lint, Build and Deploy
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -36,10 +36,10 @@ jobs:
 
       - name: Test
         working-directory: ./tests
-        run: poetry run pytest test_ssm_cache.py::test_initialize --cov ../simple_lambda_cache --cov-report term-missing -vv
+        run: poetry run pytest . --cov ../simple_lambda_cache --cov-report term-missing -vv
 
-      # - name: Code Quality
-      #   run: poetry run black simple_lambda_cache --check
+      - name: Lint with black
+        run: poetry run black simple_lambda_cache --check
 
       # Only runs on release branch
       - name: Update Test Coverage
