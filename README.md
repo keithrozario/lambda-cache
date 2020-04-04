@@ -4,7 +4,7 @@ Caching utility for AWS Lambda functions.
 ![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=red?style=flat-square) 
 ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7|%203.8&color=blue?style=flat-square&logo=python)
 
-![Test](https://github.com/keithrozario/aws_lambda_cache/workflows/Test/badge.svg) [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/keithrozario/aws_lambda_cache.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/keithrozario/aws_lambda_cache/context:python)
+![Test](https://github.com/keithrozario/aws_lambda_cache/workflows/Test/badge.svg) [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/keithrozario/aws_lambda_cache.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/keithrozario/aws_lambda_cache/context:python) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/simple_lambda_cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/simple_lambda_cache?branch=release)
 
 # Basics
 
