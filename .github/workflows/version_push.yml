@@ -42,6 +42,7 @@ jobs:
       #   run: poetry run black simple_lambda_cache --check
 
       - name: Subset Test
+        working-directory: ./tests
         run: poetry run pytest test_ssm_cache.py::test_initialize --cov ../simple_lambda_cache --cov-report term-missing -vv
 
       # Only runs on release branch
