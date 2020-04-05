@@ -3,8 +3,9 @@ name: Build
 # Triggers
 on:
   push:
-    branches:
-      - '*'
+    branches-ignore:
+      - 'first_docs'
+      - 'no_build*'
   pull_request:
     branches:
       - 'feature'

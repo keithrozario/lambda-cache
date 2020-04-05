@@ -4,7 +4,7 @@
 ![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=red?style=flat-square) 
 ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7|%203.8&color=blue?style=flat-square&logo=python)
 
-![Test](https://github.com/keithrozario/aws_lambda_cache/workflows/Test/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/simple_lambda_cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/simple_lambda_cache?branch=release)
+![Build](https://github.com/keithrozario/simple_lambda_cache/workflows/Build/badge.svg?branch=release) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/simple_lambda_cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/simple_lambda_cache?branch=release) [![Documentation Status](https://readthedocs.org/projects/simple-lambda-cache/badge/?version=latest)](https://simple-lambda-cache.readthedocs.io/en/latest/?badge=latest)
 
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/keithrozario/aws_lambda_cache.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/keithrozario/aws_lambda_cache/context:python) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
