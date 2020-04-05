@@ -9,7 +9,7 @@ The goal of the package is to provide a simple interface for caching, built spec
 To cache a parameter from ssm, decorate your handler function:
 
 ```python
-from aws_lambda_cache import ssm_cache
+from simple_lambda_cache import ssm_cache
 
 @ssm_cache(parameter='/production/app/var')
 def handler(event, context):

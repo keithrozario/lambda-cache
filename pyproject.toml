@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simple-lambda-cache"
-version = "0.6.0"
+version = "0.6.1"
 description = "Python utility for simple caching in AWS Lambda functions"
 authors = ["keithrozario <keith@keithrozario.com>"]
 documentation = "https://simple-lambda-cache.readthedocs.io/en/latest/"
