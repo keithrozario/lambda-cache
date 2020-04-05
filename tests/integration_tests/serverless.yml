@@ -8,7 +8,7 @@ custom:
 
 provider:
   name: aws
-  runtime: python3.6
+  runtime: python3.8
   stage: test
   region: ap-southeast-1
   iamRoleStatements:
@@ -53,10 +53,10 @@ provider:
 
 package:
  include:
-   - ../aws_lambda_cache/**
-   - ../tests/variables_data.py
+   - ../../simple_lambda_cache/**
+   - ../variables_data.py
  exclude:
-   - ../aws_lambda_cache/__pycache__/**
+   - ../../simple_lambda_cache/__pycache__/**
 
 functions:
   single_handler:

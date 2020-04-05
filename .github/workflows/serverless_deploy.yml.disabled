@@ -21,15 +21,15 @@ jobs:
 
       # Install npm and it's dependencies
       - name: Install npm dependencies
-        working-directory: ./integration_tests
+        working-directory: ./tests/integration_tests
         run: npm install
 
       # Install SLS
       - name: Serverless Install
-        working-directory: ./integration_tests
+        working-directory: ./tests/integration_tests
         run: npm install serverless@1.54.0
       
       # Deploy Lambdas
       - name: Serverless Deploy
-        working-directory: ./integration_tests
+        working-directory: ./tests/integration_tests
         run: npx serverless deploy

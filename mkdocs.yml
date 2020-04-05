@@ -1,0 +1,8 @@
+site_name: Simple Lambda Cache
+nav:
+  - Home: index.md
+  - Installation: install.md
+  - User Guide: user_guide.md
+  - Reference: reference.md
+
+theme: readthedocs
