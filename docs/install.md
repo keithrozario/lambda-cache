@@ -16,13 +16,13 @@ Using [Serverless Framework](https://serverless.com/), and the [serverless-pytho
 
 simply ensure that _simple_lambda_cache_ is part of your `requirements.txt` file:
 
-    $ pip install simple_lambda_cache
+    $ pip install simple-lambda-cache
 
 
 ## Manual Installation
 
 Because _simple_lambda_cache_ is a pure python package, you can also manually include the package in your lambda function, by installing it in your root directory of your function
 
-    $ pip install simple_lambda_cache -t /path/to/function
+    $ pip install simple-lambda-cache -t /path/to/function
 
 
