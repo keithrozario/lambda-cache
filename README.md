@@ -10,7 +10,7 @@
 
 # Basics
 
-_simple_lambda_cache_ prioritizes simplicity over performance and flexibility. The goal of the package is to provide the **simplest** way for developers cache api calls in their Lambda functions quickly, and easily.
+_simple_lambda_cache_ prioritizes simplicity over performance and flexibility. The goal of the package is to provide the **simplest** way for developers to cache api calls in their Lambda functions.
 
 Currently only SSM Parameters and Secrets from Secrets Manager are supported.
 
@@ -43,11 +43,11 @@ def handler(event, context):
     return response
 ```
 
-_Note: The caching logic runs only at invocation, regardless of how long the function runs. A 15 minute lambda function will not refresh the parameter, unless explicitly refreshed. Caching 'within' an invocation is less relevant as caching 'across' invocations._
+_Note: The caching logic runs only at invocation, regardless of how long the function runs. A 15 minute lambda function will not refresh the parameter, unless explicitly refreshed using get_cache_ssm. The library is primary interested in caching 'across' invocation rather than 'within' an invocation_
 
 ## Change cache entry settings
 
-For simplicity the name of the parameter is automatically shortened to the string after the last slash('/') character. This means `/production/app/var` and `test/app/var` resolve to just `var`. To over-ride this default, use the `entry_name` argument for the decorator:
+The name of the parameter is simply shortened to the string after the last slash('/') character of its name. This means `/production/app/var` and `test/app/var` resolve to just `var`. To over-ride this default, use `entry_name`:
 
 ```python
 from aws_lambda_cache import ssm_cache
@@ -74,7 +74,7 @@ def handler(event, context):
     return response
 ```
 
-Under the hood, we us the `get_parameters` API call for boto3, which translate to a single network call for multiple parameters.  
+Under the hood, we us the `get_parameters` API call for boto3, which translate to a single network call for multiple parameters. You can group all parameters types in a single call, with `StringList` parameters returned a python lists.
 
 ## Decorator stacking
 If you wish to cache multiple parameters with different expiry times, stack the decorators. In this example, `var1` will be refreshed every 30 seconds, `var2` will be refreshed after 60.
@@ -97,27 +97,30 @@ If you require a fresh value at some point of the code, you can force a refresh 
 ```python
 from aws_lambda_cache import ssm_cache, get_ssm_cache
 
-@ssm_cache(parameter='/prod/app/var')
+@ssm_cache(parameter='/prod/var')
 def handler(event, context):
 
     if event.get('refresh'):
+        # refresh parameter
         var = get_ssm_cache(parameter='/prod/var', ttl_seconds=0)
     else:
         var = context.get('var')
+    
     response = do_something(var)
     return response
 ```
 
 To disable cache, set `ttl_seconds=0`.
+
 To only get parameter once in the lifetime of the function, set `ttl_seconds` to some arbitary large number ~36000 (10 hours).
 
 ## Return Values
 
-Caching supports `String`, `SecureString` and `StringList` parameters with no change required (ensure you have `kms:Decrypt` permission for `SecureString`). For simplicity, `StringList` parameters are automatically converted into list (delimited by '/').
+Caching supports `String`, `SecureString` and `StringList` parameters with no change required (ensure you have `kms:Decrypt` permission for `SecureString`). For simplicity, `StringList` parameters are automatically converted into list (delimited by '/'), while `String` and `SecureString` both return the single string value of the parameter.
 
 # Secrets Manager
 
-Secret support is similar, but use the `secret_cache` decorator.
+Secret support is similar, but uses the `secret_cache` decorator.
 
 ```python
 from aws_lambda_cache import secret_cache
@@ -149,7 +152,7 @@ def handler(event, context):
 
 ## Return Values
 
-Secrets Manager supports both string and binary secrets. For simplicity we will cache the secret in the format it is stored. It is up to the calling application to process the return.
+Secrets Manager supports both string and binary secrets. For simplicity we will cache the secret in the format it is stored. It is up to the calling application to process the return as Binary or Strings.
 
 # Credit
 
