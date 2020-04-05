@@ -1,4 +1,4 @@
-name: Test
+name: Build
 
 # Triggers
 on:
@@ -12,7 +12,7 @@ on:
 # Specify what jobs to run
 jobs:
   TestBuildDeploy:
-    name: UnitTest
+    name: Test, Lint, Build and Deploy
     runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -34,11 +34,11 @@ jobs:
       - name: Install Dependencies
         run: poetry install
 
-      - name: Test with pytest
+      - name: Test
         working-directory: ./tests
-        run: poetry run pytest test_ssm_cache.py --cov ../aws_lambda_cache --cov-report term-missing -vv
-      
-      - name: Code Quality
+        run: poetry run pytest . --cov ../simple_lambda_cache --cov-report term-missing -vv
+
+      - name: Lint with black
         run: poetry run black simple_lambda_cache --check
 
       # Only runs on release branch
@@ -47,7 +47,7 @@ jobs:
         working-directory: ./tests
         run: |
           poetry run coveralls debug
-          coveralls
+          poetry run coveralls
       
       - name: Build
         if: github.ref == 'refs/heads/release'
@@ -67,4 +67,3 @@ jobs:
         with:
           name: dist
           path: dist
-
