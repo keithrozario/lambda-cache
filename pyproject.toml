@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simple_lambda_cache"
-version = "0.5.3"
+version = "0.5.4"
 description = "Python utility for simple caching in AWS Lambda functions"
 authors = ["keithrozario <keith@keithrozario.com>"]
 repository = "https://github.com/keithrozario/aws_lambda_cache"
@@ -18,7 +18,7 @@ readme = "README.md"
 license = "Apache Software License"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 pytest-cov = "^2.8.1"
 coverage = "^5.0.4"
 coveralls = "^1.11.1"

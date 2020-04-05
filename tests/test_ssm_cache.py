@@ -1,4 +1,3 @@
-from simple_lambda_cache import __version__
 from simple_lambda_cache import ssm_cache
 from simple_lambda_cache import get_ssm_cache
 from simple_lambda_cache.exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
@@ -7,13 +6,13 @@ import time
 import random, string
 import pytest
 from botocore.exceptions import ClientError
+import toml
 
 from tests.variables_data import *
 from tests.helper_functions import update_parameter
 
 
 def test_initialize():
-    assert __version__ == '0.2.5'
     update_parameter(ssm_parameter, ssm_parameter_value)
     update_parameter(ssm_parameter_2, ssm_parameter_2_value)
     update_parameter(secure_parameter, secure_parameter_value, param_type='SecureString')
