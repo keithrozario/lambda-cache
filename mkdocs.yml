@@ -1,4 +1,4 @@
-site_name: Simple Lambda Cache
+site_name: lambda cache
 nav:
   - Home: index.md
   - Installation: install.md
