@@ -1,5 +1,6 @@
 class LambdaCacheError(Exception):
     """Base class for exceptions in this module."""
+
     pass
 
 
@@ -13,6 +14,7 @@ class ArgumentTypeNotSupportedError(LambdaCacheError):
 
 class NoEntryNameError(LambdaCacheError):
     """Raised when No entry_name is provided."""
+
     def __init__(self, message=False):
         self.message = "No entry_name provided"
         self.Code = "ArgumentTypeNotSupportedError"
