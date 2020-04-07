@@ -1,27 +1,16 @@
-name: Build
+name: Release
 
 # Triggers
 on:
-  push:
-    branches-ignore:
-      - 'first_docs'
-      - 'no_build*'
-      - master
-  pull_request:
-    branches:
-      - 'release'
+  release:
+    types: [published]
 
 # Specify what jobs to run
 jobs:
-  TestBuildDeploy:
-    name: Test, Lint, Build and Deploy
+  Build_Release:
+    name: Build_Release
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: us-east-1
-      COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }} 
-    
+
     steps:
       - uses: actions/checkout@v1
       
@@ -35,20 +24,23 @@ jobs:
 
       - name: Install Dependencies
         run: poetry install
+      
+      - name: Build
+        working-directory: .
+        run: poetry build
+      
+      - name: publish
+        working-directory: .
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish
 
-      - name: Test
-        working-directory: ./tests
-        run: poetry run pytest . --cov ../lambda_cache --cov-report term-missing -vv
-
-      - name: Lint with black
-        run: poetry run black lambda_cache --check
-
-    # Only runs on release branch
-      - name: Update Test Coverage
-        if: github.ref == 'refs/heads/release'  # only on the feature branch do we publish code coverage stats
-        working-directory: ./tests
-        run: poetry run coveralls
-
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: dist
+          path: dist
+          
     # Success / Failure, publish to Slack
       - name: Notify slack success
         if: success()
