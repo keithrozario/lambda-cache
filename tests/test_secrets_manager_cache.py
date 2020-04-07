@@ -1,6 +1,5 @@
-from simple_lambda_cache import secret_cache
-from simple_lambda_cache import get_secret_cache
-from simple_lambda_cache.exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
+from lambda_cache import secrets_manager
+from lambda_cache.exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
 
 import time
 import random, string
@@ -30,13 +29,12 @@ def test_default_decorators():
 def test_invalid_parameters():
     
     with pytest.raises(ArgumentTypeNotSupportedError) as e:
-        returned_value = get_secret_cache(name=123, entry_name="dummy")
+        secrets_manager.get_entry(name=123, entry_name="dummy")
         assert e['Code'] == "ArgumentTypeNotSupportedError"
     
     with pytest.raises(NoEntryNameError) as e:
-        returned_value = get_secret_cache(name=123)
+        secrets_manager.get_entry(name=123)
         assert e['Code'] == "NoEntryNameError"
-
 
 
 # Test parameter assignment
@@ -46,44 +44,44 @@ def parameter_assignment(secret_name, secret_value, secret_type='String', ttl=10
     if secret_type == 'Binary':
         dummy_value = dummy_value.encode('utf-8')
 
-    secret = get_secret_cache(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
     assert secret == secret_value
     
     # update and check, should be old value
     update_secret(secret_name, dummy_value, secret_type)
-    secret = get_secret_cache(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
     assert secret == secret_value
 
     # Wait ttl, previous update should now appear
     time.sleep(ttl)
-    secret = get_secret_cache(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
     assert secret == dummy_value
 
     # Update back to original number, dummy value should still be present in cache
     update_secret(secret_name, secret_value, secret_type)
     time.sleep(int(ttl/2))
-    secret = get_secret_cache(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
     assert secret == dummy_value
 
     # Update back to original number, dummy value should still be present in cache
     time.sleep(int(ttl/2)+1)
-    secret = get_secret_cache(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
     assert secret == secret_value
 
 # Test Parameter Caching TTL settings
-@secret_cache(name=secret_name_string)
+@secrets_manager.cache(name=secret_name_string)
 def normal_call(event, context):
     return context
 
-@secret_cache(name=secret_name_string, ttl_seconds=10)
+@secrets_manager.cache(name=secret_name_string, ttl_seconds=10)
 def call_with_ttl(event, context):
     return context
 
-@secret_cache(name=secret_name_string, ttl_seconds=10, entry_name="new_secret")
+@secrets_manager.cache(name=secret_name_string, ttl_seconds=10, entry_name="new_secret")
 def call_with_entry_name(event, context):
     return context
 
-@secret_cache(name=secret_name_binary, ttl_seconds=10, entry_name="binary_secret")
+@secrets_manager.cache(name=secret_name_binary, ttl_seconds=10, entry_name="binary_secret")
 def call_binary(event, context):
     return context
 

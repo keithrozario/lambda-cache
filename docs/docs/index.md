@@ -1,4 +1,4 @@
-# Simple Lambda Cache
+# lambda-cache
 
 Simple caching for AWS Lambda.
 
@@ -9,9 +9,9 @@ The goal of the package is to provide a simple interface for caching, built spec
 To cache a parameter from ssm, decorate your handler function:
 
 ```python
-from simple_lambda_cache import ssm_cache
+from lambda_cache import ssm
 
-@ssm_cache(parameter='/production/app/var')
+@ssm.cache(parameter='/production/app/var')
 def handler(event, context):
     var = context.get('var')
     response = do_something(var)

@@ -83,7 +83,7 @@ def get_entry_name(argument, entry_name):
         S3 Keys can have a varied characters
 
     if entry_name is set, we return entry_name
-    if entry_name is False, 
+    if entry_name is False,
         if entry_name is a string, Default entry_name to the string after the last '/' in argument
 
     Args:
@@ -118,8 +118,7 @@ def get_entry_age(entry_name):
     """
     Args:
         entry_name(string): Name of entry to get age for
-    
-    returns:
+    Returns:
         entry_age_seconds(int): Age of entry in seconds
     """
     global global_aws_lambda_cache

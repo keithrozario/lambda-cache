@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "simple-lambda-cache"
-version = "0.6.1"
+name = "lambda-cache"
+version = "0.7.0"
 description = "Python utility for simple caching in AWS Lambda functions"
 authors = ["keithrozario <keith@keithrozario.com>"]
 documentation = "https://simple-lambda-cache.readthedocs.io/en/latest/"
@@ -16,7 +16,7 @@ classifiers=[
     "Programming Language :: Python :: 3.8",
 ]
 readme = "README.md"
-license = "Apache-2.0"
+license = "MIT"
 keywords = ["aws", "aws_parameter_store", "aws_lambda", "cache"]
 
 [tool.poetry.dependencies]
@@ -33,11 +33,12 @@ coverage = "^5.0.4"
 coveralls = "^1.11.1"
 toml = "^0.10.0"
 mkdocs = "^1.1"
-
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+pytest-xdist = "^1.31.0"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/keithrozario/simple_lambda_cache/issues"
 "Secrets-Do-Not-Open" = "https://bit.ly/secret_cache"
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+

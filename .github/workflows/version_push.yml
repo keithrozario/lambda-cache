@@ -38,10 +38,10 @@ jobs:
 
       - name: Test
         working-directory: ./tests
-        run: poetry run pytest . --cov ../simple_lambda_cache --cov-report term-missing -vv
+        run: poetry run pytest . --cov ../lambda_cache --cov-report term-missing -vv
 
       - name: Lint with black
-        run: poetry run black simple_lambda_cache --check
+        run: poetry run black lambda_cache --check
 
       # Only runs on release branch
       - name: Update Test Coverage
