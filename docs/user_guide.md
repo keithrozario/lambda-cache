@@ -1,6 +1,6 @@
 # User Guide
 
-_simple_lambda_cache_ prioritizes simplicity over performance and flexibility. The goal of the package is to provide the **simplest** way for developers to cache api calls in their Lambda functions.
+_lambda_cache_ prioritizes simplicity over performance and flexibility. The goal of the package is to provide the **simplest** way for developers to cache api calls in their Lambda functions.
 
 Currently only SSM Parameters and Secrets from Secrets Manager are supported.
 
@@ -11,9 +11,9 @@ Currently only SSM Parameters and Secrets from Secrets Manager are supported.
 To cache a parameter from ssm, decorate your handler function:
 
 ```python
-from simple_lambda_cache import ssm_cache
+from lambda_cache import ssm
 
-@ssm_cache(parameter='/production/app/var')
+@ssm.cache(parameter='/production/app/var')
 def handler(event, context):
     var = context.get('var')
     response = do_something(var)
@@ -26,9 +26,9 @@ All invocations of this function over in the next minute will reference the para
 The default `ttl_seconds` settings is 60 seconds (1 minute), it defines how long a parameter should be kept in cache before it is refreshed from ssm. To configure longer or shorter times, modify this argument like so:
 
 ```python
-from simple_lambda_cache import ssm_cache
+from lambda_cache import ssm
 
-@ssm_cache(parameter='/production/app/var', ttl_seconds=300)
+@ssm.cache(parameter='/production/app/var', ttl_seconds=300)
 def handler(event, context):
     var = context.get('var')
     response = do_something(var)
@@ -42,9 +42,9 @@ _Note: The caching logic runs only at invocation, regardless of how long the fun
 The name of the parameter is simply shortened to the string after the last slash('/') character of its name. This means `/production/app/var` and `test/app/var` resolve to just `var`. To over-ride this default, use `entry_name`:
 
 ```python
-from simple_lambda_cache import ssm_cache
+from lambda_cache import ssm
 
-@ssm_cache(parameter='/production/app/var', entry_name='new_var')
+@ssm.cache(parameter='/production/app/var', entry_name='new_var')
 def handler(event, context):
     var = context.get('new_var')
     response = do_something(var)
@@ -56,9 +56,9 @@ def handler(event, context):
 To cache multiple entries at once, pass a list of parameters to the parameter argument, and grab the parameters from `context['parameters']`.
 
 ```python
-from simple_lambda_cache import ssm_cache
+from lambda_cache import ssm
 
-@ssm_cache(parameter=['/app/var1', '/app/var2'], entry_name='parameters')
+@ssm.cache(parameter=['/app/var1', '/app/var2'], entry_name='parameters')
 def handler(event, context):
     var1 = context.get('parameters').get('var1')
     var2 = context.get('parameters').get('var2')
@@ -72,8 +72,8 @@ Under the hood, we us the `get_parameters` API call for boto3, which translate t
 If you wish to cache multiple parameters with different expiry times, stack the decorators. In this example, `var1` will be refreshed every 30 seconds, `var2` will be refreshed after 60.
 
 ```python
-@ssm_cache(parameter='/production/app/var1', ttl_seconds=30)
-@ssm_cache(parameter='/production/app/var2', ttl_seconds=60)
+@ssm.cache(parameter='/production/app/var1', ttl_seconds=30)
+@ssm.cache(parameter='/production/app/var2', ttl_seconds=60)
 def handler(event, context):
     var1 = context.get('var1')
     var2 = context.get('var2')
@@ -84,17 +84,17 @@ _Note: Decorator stacking performs one API call per decorator, which might resul
 
 ### Cache invalidation
 
-If you require a fresh value at some point of the code, you can force a refresh using the `get_ssm_cache` function, and setting the `ttl_seconds` argument to 0.
+If you require a fresh value at some point of the code, you can force a refresh using the `ssm.get_entry` function, and setting the `ttl_seconds` argument to 0.
 
 ```python
-from simple_lambda_cache import ssm_cache, get_ssm_cache
+from lambda_cache import ssm
 
-@ssm_cache(parameter='/prod/var')
+@ssm.cache(parameter='/prod/var')
 def handler(event, context):
 
     if event.get('refresh'):
         # refresh parameter
-        var = get_ssm_cache(parameter='/prod/var', ttl_seconds=0)
+        var = ssm.get_entry(parameter='/prod/var', ttl_seconds=0)
     else:
         var = context.get('var')
     
@@ -117,9 +117,9 @@ Caching supports `String`, `SecureString` and `StringList` parameters with no ch
 Secret support is similar, but uses the `secret_cache` decorator.
 
 ```python
-from simple_lambda_cache import secret_cache
+from lambda_cache import secret
 
-@secret_cache(name='/prod/db/conn_string')
+@secret.cache(name='/prod/db/conn_string')
 def handler(event, context):
     conn_string = context.get('conn_string')
     return context
@@ -132,9 +132,9 @@ Secrets Managers supports all the previously mentioned features including `ttl_s
 The default `ttl_seconds` settings is 60 seconds (1 minute), it defines how long a parameter should be kept in cache before it is refreshed from ssm. To configure longer or shorter times, modify this argument like so:
 
 ```python
-from simple_lambda_cache import secret_cache
+from lambda_cache import secret
 
-@secret_cache(name='/prod/db/conn_string', ttl_seconds=300)
+@secret.cache(name='/prod/db/conn_string', ttl_seconds=300)
 def handler(event, context):
     var = context.get('conn_string')
     response = do_something(var)
@@ -148,9 +148,9 @@ _Note: The caching logic runs only at invocation, regardless of how long the fun
 The name of the secret is simply shortened to the string after the last slash('/') character of the secret's name. This means `/prod/db/conn_string` and `/test/db/conn_string` resolve to just `conn_string`. To over-ride this default, use `entry_name`:
 
 ```python
-from simple_lambda_cache import secret_cache
+from lambda_cache import secret
 
-@secret_cache(name='/prod/db/conn_string', entry_name='new_var')
+@secret.cache(name='/prod/db/conn_string', entry_name='new_var')
 def handler(event, context):
     var = context.get('new_var')
     response = do_something(var)
@@ -162,8 +162,8 @@ def handler(event, context):
 If you wish to cache multiple secrets, you can use decorator stacking.
 
 ```python
-@secret_cache(name='/prod/db/conn_string', ttl_seconds=30)
-@secret_cache(name='/prod/app/elk_username_password', ttl_seconds=60)
+@secret.cache(name='/prod/db/conn_string', ttl_seconds=30)
+@secret.cache(name='/prod/app/elk_username_password', ttl_seconds=60)
 def handler(event, context):
     var1 = context.get('conn_string')
     var2 = context.get('elk_username_password')
@@ -177,13 +177,13 @@ Note: Decorator stacking performs one API call per decorator, which might result
 
 To invalidate a secret, use the `get_secret_cache`, setting the `ttl_seconds=0`.
 ```python
-from simple_lambda_cache import secret_cache, get_secret_cache
+from lambda_cache import secret
 
-@secret_cache(name='/prod/db/conn_string')
+@secret.cache(name='/prod/db/conn_string')
 def handler(event, context):
 
     if event.get('refresh'):
-        var = get_secret_cache(name='/prod/db/conn_string', ttl_seconds=0)
+        var = secret.get_entry(name='/prod/db/conn_string', ttl_seconds=0)
     else:
         var = context.get('conn_string')
     response = do_something(var)

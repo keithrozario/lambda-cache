@@ -1,5 +1,5 @@
 import toml
-from simple_lambda_cache import __version__
+from lambda_cache import __version__
 
 def test_version():
     """

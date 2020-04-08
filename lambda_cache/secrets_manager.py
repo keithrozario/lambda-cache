@@ -1,11 +1,10 @@
-import functools
 import boto3
 
-from .caching_logic import get_decorator, get_value, get_entry_name
+from .caching_logic import get_decorator, get_value
 from .exceptions import ArgumentTypeNotSupportedError
 
 
-def secret_cache(name, ttl_seconds=60, entry_name=False):
+def cache(name, ttl_seconds=60, entry_name=False):
     """
     Calls check cache, and decorates function by injecting key value into the context object
         ** The secret name must be ASCII letters, digits, or the following characters : /_+=.@-
@@ -28,7 +27,7 @@ def secret_cache(name, ttl_seconds=60, entry_name=False):
     return decorator
 
 
-def get_secret_cache(name, ttl_seconds=60, entry_name=False):
+def get_entry(name, ttl_seconds=60, entry_name=False):
     """
     Wrapper function for parameter_caching
 
@@ -40,7 +39,6 @@ def get_secret_cache(name, ttl_seconds=60, entry_name=False):
     Returns:
         secret_value(string)  : Value of the parameter
     """
-
     secret_value = get_value(
         argument=name,
         ttl_seconds=ttl_seconds,

@@ -4,7 +4,7 @@ from .caching_logic import get_decorator, get_value, get_entry_name
 from .exceptions import ArgumentTypeNotSupportedError
 
 
-def ssm_cache(parameter, ttl_seconds=60, entry_name=False):
+def cache(parameter, ttl_seconds=60, entry_name=False):
     """
     Calls parameter caching, and decorates function by injecting key value into the context object
 
@@ -27,7 +27,7 @@ def ssm_cache(parameter, ttl_seconds=60, entry_name=False):
     return decorator
 
 
-def get_ssm_cache(parameter, ttl_seconds=60, entry_name=False):
+def get_entry(parameter, ttl_seconds=60, entry_name=False):
     """
     Wrapper function for parameter_caching
 
@@ -83,7 +83,7 @@ def get_parameter_from_ssm(parameter):
 
     else:
         raise ArgumentTypeNotSupportedError(
-            "Only str or list of str supported for ssm_cache"
+            "Only str or list supported for ssm, {parameter} is of type: {type(parameter)}"
         )
 
     return return_value
