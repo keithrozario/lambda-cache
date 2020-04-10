@@ -10,7 +10,7 @@ provider:
   name: aws
   runtime: python3.6
   stage: test
-  region: ap-southeast-1
+  region: ${env:AWS_DEFAULT_REGION, 'ap-southeast-1'}
   iamRoleStatements:
     - Effect: Allow
       Action:
