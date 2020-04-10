@@ -21,7 +21,7 @@ def get_decorator(**kwargs):
         def inner_function(event, context):
 
             response = check_cache(**kwargs)
-            
+
             # Inject {parameter_name: parameter_value} into context object
             for key in response:
                 setattr(context, key, response[key])
@@ -61,10 +61,10 @@ def check_cache(argument, max_age_in_seconds, entry_name, miss_function, **kwarg
 
     entry_name = get_entry_name(argument, entry_name)
     entry_age = get_entry_age(entry_name)
-    
+
     # if kwargs exist, then pass additional data to miss_function, else just argument
     if len(kwargs) > 0:
-        kwargs['argument'] == argument
+        kwargs["argument"] == argument
         function_data = kwargs
     else:
         function_data = argument
