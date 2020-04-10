@@ -7,9 +7,10 @@ on:
       - 'first_docs'
       - 'no_build*'
       - master
-  pull_request:
-    branches:
-      - 'release'
+      - release
+  # pull_request:
+  #   branches:
+  #     - 'release'
 
 # Specify what jobs to run
 jobs:
