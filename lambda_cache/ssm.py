@@ -5,6 +5,7 @@ from .exceptions import ArgumentTypeNotSupportedError
 
 default_max_age_in_seconds = 60
 
+
 def cache(parameter, max_age_in_seconds=default_max_age_in_seconds, entry_name=False):
     """
     Calls parameter caching, and decorates function by injecting key value into the context object
@@ -28,7 +29,9 @@ def cache(parameter, max_age_in_seconds=default_max_age_in_seconds, entry_name=F
     return decorator
 
 
-def get_entry(parameter, max_age_in_seconds=default_max_age_in_seconds, entry_name=False):
+def get_entry(
+    parameter, max_age_in_seconds=default_max_age_in_seconds, entry_name=False
+):
     """
     Wrapper function for parameter_caching
 

@@ -5,6 +5,7 @@ from .exceptions import ArgumentTypeNotSupportedError
 
 default_max_age_in_seconds = 60
 
+
 def cache(name, max_age_in_seconds=default_max_age_in_seconds, entry_name=False):
     """
     Calls check cache, and decorates function by injecting key value into the context object
