@@ -1,5 +1,16 @@
 # Design Decision
 
+## Where to store cached objects?
+
+There's two possible locations to store cache objects within an execution context -- that will survive across invocations:
+
+* The `/tmp` directory
+* A `global` variable
+
+Both aren't perfect, but between the two we chose `global` variables for two reasons:
+* They exists only within the context of the application.
+* They are faster than files on the file-system, as they don't require reading in or parsing out.
+
 ## Where to insert cached object?
 
 We use a decorator construct to inject a cached object into the Lambda Context of the Lambda function. This is the simplest way to ensure the cache entry object is checked at every invocation. 

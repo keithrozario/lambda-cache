@@ -4,5 +4,6 @@ nav:
   - Installation: install.md
   - User Guide: user_guide.md
   - Reference: reference.md
+  - Design: design.md
 
 theme: readthedocs

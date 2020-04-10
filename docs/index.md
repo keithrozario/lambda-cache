@@ -6,7 +6,11 @@ The goal of the package is to provide a simple interface for caching, built spec
 
 ## Simple use-case
 
-To cache a parameter from ssm, decorate your handler function:
+Our goal is to enable Lambda functions to cache data internally for a period of time, without incurring the delay of making a large number of network calls:
+
+![Screenshot](images/lambda_cache.png)
+
+To do so via code, we decorate our handler method with the `ssm.cache` function:
 
 ```python
 from lambda_cache import ssm
@@ -18,9 +22,9 @@ def handler(event, context):
     return response
 ```
 
-All invocations of this function in the next 60 seconds, will reference the parameter from the function's internal cache, without making a network call to ssm. After 60 seconds has lapsed, the next invocation will get the latest value from SSM. 
+All invocations after the first, will reference the parameter from the function's internal cache, without making a network call to ssm (which incurs a ~50ms delay). After 60 seconds has lapsed, the next invocation will get the latest value from SSM. 
 
-This increases the functions performance, reduces the load on back-end services (that might have throttling limits), and guarantees that invocations after a set-time will begin using the latest parameter value.
+This increases the functions performance, reduces the load on back-end services, and guarantees that invocations after a set-time will begin using the latest parameter value. 
 
 ## Caching Basics
 
