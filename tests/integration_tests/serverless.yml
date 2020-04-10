@@ -72,6 +72,10 @@ package:
    - ../../lambda_cache/__pycache__/**
    - .pytest_cache/**
    - __pycache__/**
+   - node_modules/**
+   - package.json
+   - package-lock.json
+   - tests/**
 
 functions:
   single_handler:
