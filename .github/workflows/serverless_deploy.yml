@@ -19,12 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v1 
 
-      # Install npm and it's dependencies
-      - name: Install npm dependencies
-        run: npm install
-
-      # sls deploy
-      - name: Serverless deploy
-        uses: serverless/github-action@e17abe72d4969e86cb53576ade34e95c40362f0e
-        with:
-          args: deploy
+      # Install SLS
+      - name: Serverless Install
+        working-directory: ./tests/integration_tests
+        run: npm install serverless@1.54.0
+      
+      # Deploy Lambdas
+      - name: Serverless Deploy
+        working-directory: ./tests/integration_tests
+        run: npx serverless deploy
