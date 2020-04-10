@@ -41,9 +41,14 @@ jobs:
 
       - name: Testing with Pytest
         working-directory: ./tests
-        run: poetry run pytest . --cov ../lambda_cache --cov-report term-missing -vv
+        run: poetry run pytest . --cov ../lambda_cache --cov-report term-missing --ignore=./integration_tests/ -vv
 
     # Only runs on release branch
+      - name: Integration Test
+        if: github.ref == 'refs/heads/release' 
+        working-directory: ./tests/integration_tests
+        run: poetry run pytest -vv
+
       - name: Update Test Coverage
         if: github.ref == 'refs/heads/release'  # only on the feature branch do we publish code coverage stats
         working-directory: ./tests
