@@ -1,0 +1,30 @@
+name: Test Function Deploy
+
+# Triggers
+on:
+  push:
+    branches:
+      - 'serverless*'
+      - 'release'
+
+# Specify what jobs to run
+jobs:
+  sls_deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    steps:
+      - uses: actions/checkout@v1 
+
+      # Install npm and it's dependencies
+      - name: Install npm dependencies
+        run: npm installs
+
+      # sls deploy
+      - name: Serverless deploy
+        uses: serverless/github-action@e17abe72d4969e86cb53576ade34e95c40362f0e
+        with:
+          args: deploy
