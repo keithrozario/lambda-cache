@@ -29,18 +29,24 @@ jobs:
         working-directory: .
         run: poetry build
       
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: dist
+          path: dist
+      
+      - name: Upload the artifacts
+        uses: skx/github-action-publish-binaries@9f2ea568baec5017a7d608f03ef143a57745cc5c
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: 'example-*'
+      
       - name: publish
         working-directory: .
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
           poetry publish
 
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: dist
-          path: dist
-          
     # Success / Failure, publish to Slack
       - name: Notify slack success
         if: success()

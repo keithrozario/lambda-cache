@@ -1,5 +1,6 @@
 from lambda_cache import secrets_manager
 from lambda_cache.exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
+from tests.context_object import LambdaContext
 
 import time
 import random, string
@@ -44,28 +45,28 @@ def parameter_assignment(secret_name, secret_value, secret_type='String', ttl=10
     if secret_type == 'Binary':
         dummy_value = dummy_value.encode('utf-8')
 
-    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, max_age_in_seconds=ttl)
     assert secret == secret_value
     
     # update and check, should be old value
     update_secret(secret_name, dummy_value, secret_type)
-    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, max_age_in_seconds=ttl)
     assert secret == secret_value
 
     # Wait ttl, previous update should now appear
     time.sleep(ttl)
-    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, max_age_in_seconds=ttl)
     assert secret == dummy_value
 
     # Update back to original number, dummy value should still be present in cache
     update_secret(secret_name, secret_value, secret_type)
     time.sleep(int(ttl/2))
-    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, max_age_in_seconds=ttl)
     assert secret == dummy_value
 
     # Update back to original number, dummy value should still be present in cache
     time.sleep(int(ttl/2)+1)
-    secret = secrets_manager.get_entry(name=secret_name, ttl_seconds=ttl)
+    secret = secrets_manager.get_entry(name=secret_name, max_age_in_seconds=ttl)
     assert secret == secret_value
 
 # Test Parameter Caching TTL settings
@@ -73,15 +74,15 @@ def parameter_assignment(secret_name, secret_value, secret_type='String', ttl=10
 def normal_call(event, context):
     return context
 
-@secrets_manager.cache(name=secret_name_string, ttl_seconds=10)
+@secrets_manager.cache(name=secret_name_string, max_age_in_seconds=10)
 def call_with_ttl(event, context):
     return context
 
-@secrets_manager.cache(name=secret_name_string, ttl_seconds=10, entry_name="new_secret")
+@secrets_manager.cache(name=secret_name_string, max_age_in_seconds=10, entry_name="new_secret")
 def call_with_entry_name(event, context):
     return context
 
-@secrets_manager.cache(name=secret_name_binary, ttl_seconds=10, entry_name="binary_secret")
+@secrets_manager.cache(name=secret_name_binary, max_age_in_seconds=10, entry_name="binary_secret")
 def call_binary(event, context):
     return context
 
@@ -90,22 +91,25 @@ def decorator_test(name, entry_name, secret_value, decorated_function, ttl=10, s
     dummy_value = ''.join(random.choices(string.ascii_lowercase, k = 25))
     if secret_type == 'Binary':
         dummy_value = dummy_value.encode('utf-8')
+    
+    test_event = dict()
+    test_context = LambdaContext()
 
-    context = decorated_function({},{})
-    assert context.get(entry_name) == secret_value
+    context = decorated_function(test_event ,test_context)
+    assert getattr(context, entry_name) == secret_value
     
     update_secret(name, dummy_value, secret_type=secret_type)
-    context = decorated_function({},{})
-    assert context.get(entry_name) == secret_value
+    context = decorated_function(test_event ,test_context)
+    assert getattr(context, entry_name) == secret_value
     
     time.sleep(ttl)
-    context = decorated_function({},{})
-    assert context.get(entry_name) == dummy_value
+    context = decorated_function(test_event ,test_context)
+    assert getattr(context, entry_name) == dummy_value
 
     update_secret(name, secret_value, secret_type=secret_type)
-    context = decorated_function({},{})
-    assert context.get(entry_name) == dummy_value
+    context = decorated_function(test_event ,test_context)
+    assert getattr(context, entry_name) == dummy_value
     
     time.sleep(ttl)
-    context = decorated_function({},{})
-    assert context.get(entry_name) == secret_value
+    context = decorated_function(test_event ,test_context)
+    assert getattr(context, entry_name) == secret_value

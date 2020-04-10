@@ -53,22 +53,26 @@ provider:
 
 package:
  include:
-   - ../../simple_lambda_cache/**
+   - ../../lambda_cache/**
    - ../variables_data.py
  exclude:
-   - ../../simple_lambda_cache/__pycache__/**
+   - ../../lambda_cache/__pycache__/**
+   - .pytest_cache/**
+   - __pycache__/**
 
 functions:
   single_handler:
-    handler: test_ssm.single_parameter
+    handler: _test_ssm.single_parameter
   multi_handler:
-    handler: test_ssm.multi_parameter
+    handler: _test_ssm.multi_parameter
+  multi_handler_2:
+    handler: _test_ssm.multi_parameter_2
   default_param:
-    handler: test_ssm.rename_param
+    handler: _test_ssm.rename_param
   secure_string:
-    handler: test_ssm.secure_string
+    handler: _test_ssm.secure_string
   string_list:
-    handler: test_ssm.string_list
+    handler: _test_ssm.string_list
   assign_parameter:
-    handler: test_ssm.assign_parameter
+    handler: _test_ssm.assign_parameter
 

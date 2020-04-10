@@ -3,14 +3,15 @@ import boto3
 from .caching_logic import get_decorator, get_value, get_entry_name
 from .exceptions import ArgumentTypeNotSupportedError
 
+default_max_age_in_seconds = 60
 
-def cache(parameter, ttl_seconds=60, entry_name=False):
+def cache(parameter, max_age_in_seconds=default_max_age_in_seconds, entry_name=False):
     """
     Calls parameter caching, and decorates function by injecting key value into the context object
 
     Args:
         parameter(string): Name of the parameter in System Manager Parameter Store
-        ttl_seconds(int) : Time to Live of the parameter in seconds
+        max_age_in_seconds(int) : Time to Live of the parameter in seconds
         var_name(string) : Optional name of parameter to inject into context object
 
     Returns:
@@ -20,20 +21,20 @@ def cache(parameter, ttl_seconds=60, entry_name=False):
 
     decorator = get_decorator(
         argument=parameter,
-        ttl_seconds=ttl_seconds,
+        max_age_in_seconds=max_age_in_seconds,
         entry_name=entry_name,
         miss_function=get_parameter_from_ssm,
     )
     return decorator
 
 
-def get_entry(parameter, ttl_seconds=60, entry_name=False):
+def get_entry(parameter, max_age_in_seconds=default_max_age_in_seconds, entry_name=False):
     """
     Wrapper function for parameter_caching
 
     Args:
         parameter(string): Name of the parameter in System Manager Parameter Store
-        ttl_seconds(int) : Time to Live of the parameter in seconds
+        max_age_in_seconds(int) : Time to Live of the parameter in seconds
         var_name(string) : Optional name of parameter to inject into context object
 
     Returns:
@@ -42,7 +43,7 @@ def get_entry(parameter, ttl_seconds=60, entry_name=False):
 
     parameter_value = get_value(
         argument=parameter,
-        ttl_seconds=ttl_seconds,
+        max_age_in_seconds=max_age_in_seconds,
         entry_name=entry_name,
         miss_function=get_parameter_from_ssm,
     )

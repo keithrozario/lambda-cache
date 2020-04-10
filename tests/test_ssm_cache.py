@@ -1,5 +1,6 @@
 from lambda_cache import ssm
 from lambda_cache.exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
+from tests.context_object import LambdaContext
 
 import time
 import random, string
@@ -18,62 +19,6 @@ def test_initialize():
     update_parameter(long_name_parameter, long_name_value)
     update_parameter(string_list_parameter,string_list_value, param_type='StringList')
 
-# Test parameter assignment
-def test_get_parameter():
-
-    parameter_assignment(ssm_parameter, ssm_parameter_value)
-    parameter_assignment(secure_parameter, secure_parameter_value, 'SecureString')
-    parameter_assignment(string_list_parameter, string_list_value, parameter_type='StringList')
-
-
-def parameter_assignment(parameter, parameter_value, parameter_type='String'):
-
-    dummy_name = ''.join(random.choices(string.ascii_lowercase, k = 8)) 
-    
-    if parameter_type == 'StringList':
-        dummy_value = "d,e,f"
-        dummy_value_return = dummy_value.split(",")
-        parameter_value_return = parameter_value.split(",")
-    else:
-        dummy_value = 'get_dummy'
-        dummy_value_return = dummy_value
-        parameter_value_return = parameter_value
-
-    ttl = 2
-
-    param = ssm.get_entry(parameter=parameter, ttl_seconds=ttl)
-    assert param == parameter_value_return
-    
-    update_parameter(parameter, dummy_value, parameter_type)
-    param = ssm.get_entry(parameter=parameter, ttl_seconds=ttl)
-    assert param == parameter_value_return
-
-    time.sleep(ttl)
-    param = ssm.get_entry(parameter=parameter, ttl_seconds=ttl)
-    assert param == dummy_value_return
-    param = ssm.get_entry(parameter=parameter, ttl_seconds=ttl)
-    assert param == dummy_value_return
-
-    time.sleep(ttl)
-    update_parameter(parameter, parameter_value, parameter_type)
-    param = ssm.get_entry(parameter=parameter, ttl_seconds=ttl)
-    assert param == parameter_value_return
-
-# Test Non-existent parameter
-
-@ssm.cache(parameter="/some/nonexist/parameter")
-def parameter_not_exist_var_handler(event, context):
-    return context
-
-def test_non_existing_parameter():
-    
-    test_event = {'event_name': 'test'}
-    test_context = {}
-    with pytest.raises(ClientError) as e:
-        context = parameter_not_exist_var_handler(test_event, test_context)
-        assert e['Error']['Code'] == "ParameterNotFound"
-
-
 # Test parameter import and stacking
 @ssm.cache(parameter=ssm_parameter)
 def single_var_handler(event, context):
@@ -84,7 +29,6 @@ def single_var_handler(event, context):
 def double_var_handler(event, context):
     return context
 
-
 @ssm.cache(parameter=long_name_parameter)
 def long_name_var_handler(event,context):
     return context
@@ -92,231 +36,131 @@ def long_name_var_handler(event,context):
 def test_var_handlers():
 
     test_event = {'event_name': 'test'}
-    test_context = {}
+    test_context = LambdaContext()
 
     context = single_var_handler(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
+    assert getattr(context, ssm_parameter_default_name) == ssm_parameter_value
     
     context = double_var_handler(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
-    assert context.get(ssm_parameter_2_default_name) == ssm_parameter_2_value
+    assert getattr(context, ssm_parameter_default_name) == ssm_parameter_value
+    assert getattr(context, ssm_parameter_2_default_name) == ssm_parameter_2_value
 
     context = long_name_var_handler(test_event, test_context)
-    assert context.get(long_name_default_name) == long_name_value
+    assert getattr(context, long_name_default_name) == long_name_value
 
 
 # Test Parameter Caching TTL settings
-@ssm.cache(parameter=ssm_parameter, ttl_seconds=5)
+@ssm.cache(parameter=ssm_parameter, max_age_in_seconds=5)
 def five_second_ttl(event, context):
     return context
 
-def test_cache():
-    
-    updated_value = 'Dummy Value NEW!!'
-
-    test_event = {'event_name': 'test'}
-    test_context = {}
-
-    context = five_second_ttl(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
-    
-    # Update parameter but call before 5 seconds
-    update_parameter(ssm_parameter, updated_value)
-    context = five_second_ttl(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
-
-    # Wait 5 seconds call again
-    time.sleep(5)
-    context = five_second_ttl(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == updated_value
-
-    # Revert back to normal
-    update_parameter(ssm_parameter, ssm_parameter_value)
-    time.sleep(5)
-    context = five_second_ttl(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
-
 # Test Parameter Rename
-@ssm.cache(parameter=ssm_parameter, entry_name=ssm_parameter_replaced_var_name)
+@ssm.cache(parameter=ssm_parameter, entry_name=ssm_parameter_replaced_var_name, max_age_in_seconds=5)
 def renamed_var(event, context):
     return context
 
-def test_rename_parameter():
-
-    test_event = {'event_name': 'test'}
-    test_context = {}
-
-    context = renamed_var(test_event, test_context)
-    assert context.get(ssm_parameter_replaced_var_name) == ssm_parameter_value
-
 # Test Secure String import
-@ssm.cache(parameter=secure_parameter)
+@ssm.cache(parameter=secure_parameter, max_age_in_seconds=5)
 def secure_var_handler(event,context):
     return context
 
-def test_secure_string():
-
-    test_event = {'event_name': 'test'}
-    test_context = {}
-
-    context = secure_var_handler(test_event, test_context)
-    assert context.get(secure_parameter_default_name) == secure_parameter_value
-
-# Test ttl_seconds=0 settings, no cache
-@ssm.cache(parameter=ssm_parameter, ttl_seconds=0)
-def no_cache(event, context):
-    return context
-
-def test_no_cache():
-    test_event = {'event_name': 'test'}
-    test_context = {}
-    new_value = "New Value"
-
-    context = no_cache(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
-    
-    update_parameter(ssm_parameter, new_value)
-    context = no_cache(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == new_value
-
-    update_parameter(ssm_parameter, ssm_parameter_value)
-    context = no_cache(test_event, test_context)
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
-
 # Test StringList with cache
-@ssm.cache(parameter=string_list_parameter, ttl_seconds=2)
+@ssm.cache(parameter=string_list_parameter, max_age_in_seconds=5)
 def string_list(event, context):
     return context
 
+def test_decorated_functions():
 
-def test_string_list():
-    dummy_value = 'd,e,f'
-    dummy_value_return = dummy_value.split(',')
+    decorator_test(five_second_ttl, ssm_parameter, ssm_parameter_default_name, ssm_parameter_value, 5)
+    decorator_test(renamed_var, ssm_parameter, ssm_parameter_replaced_var_name, ssm_parameter_value, 5)
+    decorator_test(secure_var_handler,secure_parameter, secure_parameter_default_name, secure_parameter_value, 5, param_type='SecureString')
+    decorator_test(string_list, string_list_parameter,string_list_default_name, string_list_value.split(','), 5, param_type='StringList')
 
-    return_list = string_list({},{}).get(string_list_default_name)
-    assert return_list == string_list_value.split(',')
+def decorator_test(decorated_function, parameter_name, entry_name, parameter_value, max_age_in_seconds, param_type='String'):
     
-    update_parameter(string_list_parameter,dummy_value,param_type='StringList')
-    time.sleep(1)
-    return_list = string_list({},{}).get(string_list_default_name)
-    assert return_list == string_list_value.split(',')
-
-    time.sleep(1)
-    return_list = string_list({},{}).get(string_list_default_name)
-    assert return_list == dummy_value_return
-
-    update_parameter(string_list_parameter,string_list_value, param_type='StringList')
-    time.sleep(2)
-    return_list = string_list({},{}).get(string_list_default_name)
-    assert return_list == string_list_value.split(',')
-
-# Test invalid parameter
-@ssm.cache(parameter=123, entry_name="hello")
-def invalid_parameter(event, context):
-    return context
-
-def test_invalid_parameter():
-
-    with pytest.raises(ArgumentTypeNotSupportedError) as e:
-        invalid_parameter({}, {})
-        assert e['Code'] == "ArgumentTypeNotSupportedError"
-
-    with pytest.raises(NoEntryNameError) as e:
-        ssm.get_entry(parameter=123, ttl_seconds=4)
-        assert e['Code'] == "NoEntryNameError"
+    dummy_value_updated = ''.join(random.choices(string.ascii_lowercase, k = 25))
+    dummy_value_returned = dummy_value_updated
+    revert_parameter_value = parameter_value
+    if param_type == 'StringList':
+        dummy_value_updated = ','.join(random.choices(string.ascii_lowercase, k = 5))
+        dummy_value_returned = dummy_value_updated.split(',')
+        revert_parameter_value = ','.join(parameter_value)
     
-    with pytest.raises(NoEntryNameError) as e:
-        ssm.get_entry(parameter={'dummy': 'dict'}, ttl_seconds=2)
-        assert e['Code'] == "NoEntryNameError"
+    test_event = {'event_name': 'test'}
+    test_context = LambdaContext()
+
+    context = decorated_function(test_event, test_context)
+    assert getattr(context, entry_name) == parameter_value
     
-    with pytest.raises(ArgumentTypeNotSupportedError) as e:
-        ssm.get_entry(parameter=123, ttl_seconds=2, entry_name="hello")
-        assert e['Code'] == "ArgumentTypeNotSupportedError"
+    # Update parameter but call before max_age_in_seconds
+    update_parameter(parameter_name, dummy_value_updated, param_type=param_type)
+    context = decorated_function(test_event, test_context)
+    assert getattr(context, entry_name) == parameter_value
 
-    with pytest.raises(ArgumentTypeNotSupportedError) as e:
-        ssm.get_entry(parameter=(123,123), ttl_seconds=2, entry_name="hello")
-        assert e['Code'] == "ArgumentTypeNotSupportedError"
-    
-    with pytest.raises(NoEntryNameError) as e:
-        ssm.get_entry(parameter=['abc','_'], ttl_seconds=2)
-        assert e['Code'] == "NoEntryNameError"
+    # Wait max_age_in_seconds call again
+    time.sleep(max_age_in_seconds)
+    context = decorated_function(test_event, test_context)
+    assert getattr(context, entry_name) == dummy_value_returned
 
-# Test get_parameters
-@ssm.cache(parameter=[ssm_parameter, ssm_parameter_2, string_list_parameter, secure_parameter], entry_name=default_entry_name, ttl_seconds=10)
-def multi_parameters(event, context):
-    return context
+    # Revert back to normal
+    update_parameter(parameter_name, revert_parameter_value, param_type=param_type)
+    time.sleep(max_age_in_seconds)
+    context = decorated_function(test_event, test_context)
+    assert getattr(context, entry_name) == parameter_value
 
-def test_multi_parameters():
 
-    dummy_string = "__"
-    dummy_list = "-,--,---"
-
-    context = multi_parameters({},{})
-    assert context.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
-    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
-    assert context.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
-    assert context.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
-
-    update_parameter(ssm_parameter, dummy_string)
-    update_parameter(ssm_parameter_2, dummy_string)
-    update_parameter(secure_parameter, dummy_string, param_type='SecureString')
-    update_parameter(string_list_parameter, dummy_list, param_type='StringList')
-    context = multi_parameters({},{})
-    assert context.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
-    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
-    assert context.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
-    assert context.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
-
-    time.sleep(10)
-    context = multi_parameters({},{})
-    assert context.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
-    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
-    assert context.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
-    assert context.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
-
-    test_initialize()
-    context = multi_parameters({},{})
-    assert context.get(default_entry_name).get(ssm_parameter_default_name) == dummy_string
-    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == dummy_string
-    assert context.get(default_entry_name).get(string_list_default_name) == dummy_list.split(',')
-    assert context.get(default_entry_name).get(secure_parameter_default_name) == dummy_string
-    
-    time.sleep(10)
-    context = multi_parameters({},{})
-    assert context.get(default_entry_name).get(ssm_parameter_default_name) == ssm_parameter_value
-    assert context.get(default_entry_name).get(ssm_parameter_2_default_name) == ssm_parameter_2_value
-    assert context.get(default_entry_name).get(string_list_default_name) == string_list_value.split(',')
-    assert context.get(default_entry_name).get(secure_parameter_default_name) == secure_parameter_value
 
 # Test Parameter Caching TTL settings
-@ssm.cache(parameter=ssm_parameter, ttl_seconds=10)
+@ssm.cache(parameter=ssm_parameter, max_age_in_seconds=10)
 def invalidate_cache(event, context):
     if event.get('refresh', False):
-        result = ssm.get_entry(ssm_parameter, ttl_seconds=0)
-        context[ssm_parameter_default_name] = result
+        result = ssm.get_entry(ssm_parameter, max_age_in_seconds=0)
+        setattr(context, ssm_parameter_default_name, result)
     return context
 
 def test_invalidate_cache():
     
     updated_value = 'Dummy Value NEW!!'
-
+    test_event = {}
+    test_context = LambdaContext()
     refresh_event = {'refresh': True}
 
-    context = invalidate_cache({}, {})
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = invalidate_cache({}, test_context)
+    assert getattr(context, ssm_parameter_default_name) == ssm_parameter_value
     
     # Update parameter and test within 5 seconds
     update_parameter(ssm_parameter, updated_value)
     time.sleep(5)
-    context = invalidate_cache({}, {})
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = invalidate_cache({}, test_context)
+    assert getattr(context, ssm_parameter_default_name) == ssm_parameter_value
 
     # Wait 5 seconds call again, parameter should be refreshed
     time.sleep(5)
-    context = invalidate_cache({}, {})
-    assert context.get(ssm_parameter_default_name) == updated_value
+    context = invalidate_cache({}, test_context)
+    assert getattr(context, ssm_parameter_default_name) == updated_value
 
     # Update parameter back to ssm_parameter_value, but call with invalidated cache
     update_parameter(ssm_parameter, ssm_parameter_value)
-    context = invalidate_cache(refresh_event, {})
-    assert context.get(ssm_parameter_default_name) == ssm_parameter_value
+    context = invalidate_cache(refresh_event, test_context)
+    assert getattr(context, ssm_parameter_default_name) == ssm_parameter_value
+
+# Test max_age_in_seconds=0 settings, no cache
+@ssm.cache(parameter=ssm_parameter, max_age_in_seconds=0)
+def no_cache(event, context):
+    return context
+
+def test_no_cache():
+    test_event = {'event_name': 'test'}
+    test_context = LambdaContext()
+    new_value = "New Value"
+
+    context = no_cache(test_event, test_context)
+    assert getattr(context, ssm_parameter_default_name) == ssm_parameter_value
+    
+    update_parameter(ssm_parameter, new_value)
+    context = no_cache(test_event, test_context)
+    assert getattr(context, ssm_parameter_default_name) == new_value
+
+    update_parameter(ssm_parameter, ssm_parameter_value)
+    context = no_cache(test_event, test_context)
+    assert getattr(context, ssm_parameter_default_name) == ssm_parameter_value

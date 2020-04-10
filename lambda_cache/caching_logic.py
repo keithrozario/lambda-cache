@@ -4,7 +4,7 @@ import functools
 from .exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
 
 
-def get_decorator(argument, ttl_seconds, entry_name, miss_function):
+def get_decorator(argument, max_age_in_seconds, entry_name, miss_function):
     """
     Returns generic decorator for wrapping handler
     """
@@ -15,12 +15,13 @@ def get_decorator(argument, ttl_seconds, entry_name, miss_function):
 
             response = check_cache(
                 argument=argument,
-                ttl_seconds=ttl_seconds,
+                max_age_in_seconds=max_age_in_seconds,
                 entry_name=entry_name,
                 miss_function=miss_function,
             )
             # Inject {parameter_name: parameter_value} into context object
-            context.update(response)
+            for key in response:
+                setattr(context, key, response[key])
 
             return func(event, context)
 
@@ -29,13 +30,13 @@ def get_decorator(argument, ttl_seconds, entry_name, miss_function):
     return decorator
 
 
-def get_value(argument, ttl_seconds, entry_name, miss_function):
+def get_value(argument, max_age_in_seconds, entry_name, miss_function):
     """
     returns value of check_cache.
     """
     response = check_cache(
         argument=argument,
-        ttl_seconds=ttl_seconds,
+        max_age_in_seconds=max_age_in_seconds,
         entry_name=entry_name,
         miss_function=miss_function,
     )
@@ -43,17 +44,17 @@ def get_value(argument, ttl_seconds, entry_name, miss_function):
     return parameter_value
 
 
-def check_cache(argument, ttl_seconds, entry_name, miss_function):
+def check_cache(argument, max_age_in_seconds, entry_name, miss_function):
     """
     Executes the caching logic, checks cache for entry
     If entry doesn't exist, returns entry_value by calling the miss function with entry_name and var_name
     If entry does exist check entry_age:
-        If entry_age < ttl_seconds, returns value from cache
-        If entry_age >= ttl_seconds, returns value by calling miss_function
+        If entry_age < max_age_in_seconds, returns value from cache
+        If entry_age >= max_age_in_seconds, returns value by calling miss_function
 
     Args:
         argument (string, list, dict) : argument to be passed to the missed function
-        ttl_seconds(int) : Time to Live of the entry in seconds
+        max_age_in_seconds(int) : Time to Live of the entry in seconds
         entry_name(string) : Name of entry in cache, is also the name of the entry in the event object
         miss_function(function): Function to execute when there is a miss on the cache or cache is expired
     Returns:
@@ -66,7 +67,7 @@ def check_cache(argument, ttl_seconds, entry_name, miss_function):
     if entry_age is None:
         entry_value = miss_function(argument)
         update_cache(entry_name, entry_value)
-    elif entry_age < ttl_seconds:
+    elif entry_age < max_age_in_seconds:
         entry_value = get_entry_from_cache(entry_name)
     else:
         entry_value = miss_function(argument)
