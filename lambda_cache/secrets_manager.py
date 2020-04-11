@@ -68,8 +68,6 @@ def get_secret_from_secrets_manager(name):
         else:
             return_value = response["SecretBinary"]
     else:
-        raise ArgumentTypeNotSupportedError(
-            f"Secrets Manager only supports str arguments: {name} is not a string"
-        )
+        raise ArgumentTypeNotSupportedError(f"Secrets Manager only supports str arguments: {name} is not a string")
 
     return return_value
