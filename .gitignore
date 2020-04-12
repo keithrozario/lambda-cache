@@ -134,3 +134,7 @@ dmypy.json
 
 # vs code
 .vscode
+
+# Terraform
+.terraform/
+*.tfstate
