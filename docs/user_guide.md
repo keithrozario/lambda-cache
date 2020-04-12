@@ -71,6 +71,7 @@ Under the hood, we use the `get_parameters` API call for boto3, which translate 
 _Note: for this method to work, ensure you have the `ssm:GetParameters` (with the 's' at the end) in your function's permission policy_
 
 ### Decorator stacking
+
 If you wish to cache multiple parameters with different expiry times, stack the decorators. In this example, `var1` will be refreshed every 30 seconds, `var2` will be refreshed after 60.
 
 ```python
@@ -194,3 +195,54 @@ def handler(event, context):
 ### Return Values
 
 Secrets Manager supports both string and binary secrets. For simplicity we will cache the secret in the format it is stored. It is up to the calling application to process the return as Binary or Strings.
+
+## S3
+
+S3 support is considered _experimental_ for now, but withing the python community we see a lot of folks pull down files from S3 for use in AI/ML models.
+
+Files downloaded from s3 are automatically stored in the `tmp` directory of the lambda function. This is the only writable directory within lambda, and has a 512MB of storage space. 
+
+To download a file from S3 use the the same decorator pattern:
+
+```python
+from lambda_cache import s3
+
+@s3.cache(s3Uri='s3://bucket_name/path/to/object.json')
+def s3_download_entry_name(event, context):
+    with open("/tmp/object.json") as file_data:
+        status = json.loads(file_data.read())['status']
+
+    return status
+```
+
+### Change Cache expiry
+
+The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines how long a file should be kept in `/tmp` before it is refreshed from S3. To configure longer or shorter times, modify this argument like so:
+
+```python
+from lambda_cache import s3
+
+@s3.cache(s3Uri='s3://bucket_name/path/to/object.json', max_age_in_seconds=300)
+def s3_download_entry_name(event, context):
+    with open("/tmp/object.json") as file_data:
+        status = json.loads(file_data.read())['status']
+
+    return status
+```
+
+_Note: The caching logic runs only at invocation, regardless of how long the function runs. A 15 minute lambda function will not refresh the object, unless explicitly refreshed using `s3.get_entry`. The library is primary interested in caching 'across' invocation rather than 'within' an invocation_
+
+By default, _lambda_cache_ will download the file once at cache has expired, however, to save on network bandwidth (and possibly time), we can set the `check_before_download` parameter to True. This will check the age of the object in S3 and download only if the object has changed since the last download. 
+
+```python
+from lambda_cache import s3
+
+@s3.cache(s3Uri='s3://bucket_name/path/to/object.json', max_age_in_seconds=300, check_before_download=True)
+def s3_download_entry_name(event, context):
+    with open("/tmp/object.json") as file_data:
+        status = json.loads(file_data.read())['status']
+
+    return status
+```
+
+_Note: we use the GetHead object call to verify the objects `last_modified_date`. This simplifies the IAM policy of the function, as it still onlyrequires only the `s3:GetObject` permission. However, this is still a GET requests, and will be charged as such, for smaller objects it might be cheaper to just download the object_
