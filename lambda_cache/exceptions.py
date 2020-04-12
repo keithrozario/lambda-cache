@@ -17,4 +17,10 @@ class NoEntryNameError(LambdaCacheError):
 
     def __init__(self, message=False):
         self.message = "No entry_name provided"
-        self.Code = "ArgumentTypeNotSupportedError"
+        self.Code = "NoEntryNameError"
+
+
+class InvalidS3UriError(LambdaCacheError):
+    def __init__(self, invalid_uri):
+        self.message = f"Expected Valid s3uri of the form 's3://bucket-name/path/to/file', given: {invalid_uri}"
+        self.Code = "InvalidS3UriError"

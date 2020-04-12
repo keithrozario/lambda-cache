@@ -19,6 +19,7 @@ string_list_parameter = "/lambda/cache/test/somelist"
 string_list_value = "a,b,c"
 string_list_default_name = "somelist"
 
+# Secret variables
 secret_name_string = "/lambda_cache/test/secret_string"
 secret_name_string_value = "This is a secret /@#$"
 secret_string_default_name = "secret_string"
@@ -28,3 +29,7 @@ secret_name_binary_value = "this is a secret in binary".encode('utf-8')
 secret_binary_default_name = "secret_binary"
 
 default_entry_name = "context_lambda_cache"
+
+# S3 variables
+s3_key = "tests/s3/key.json"
+s3_bucket_ssm_param = "/lambda-cache/s3/bucket_name"
