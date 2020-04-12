@@ -1,4 +1,4 @@
-name: Deploy and Test
+name: Test Function Deploy
 
 # Triggers
 on:
@@ -15,14 +15,10 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
 
     steps:
       - uses: actions/checkout@v1 
-
-      # Install npm and it's dependencies
-      - name: Install npm dependencies
-        working-directory: ./tests/integration_tests
-        run: npm install
 
       # Install SLS
       - name: Serverless Install

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lambda-cache"
-version = "0.7.2"
+version = "0.8.0"
 description = "Python utility for simple caching in AWS Lambda functions"
 authors = ["keithrozario <keith@keithrozario.com>"]
 documentation = "https://simple-lambda-cache.readthedocs.io/en/latest/"
@@ -20,7 +20,7 @@ license = "MIT"
 keywords = ["aws", "aws_parameter_store", "aws_lambda", "cache"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^4.6"
@@ -34,6 +34,7 @@ coveralls = "^1.11.1"
 toml = "^0.10.0"
 mkdocs = "^1.1"
 pytest-xdist = "^1.31.0"
+pre-commit = "^2.2.0"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/keithrozario/simple_lambda_cache/issues"

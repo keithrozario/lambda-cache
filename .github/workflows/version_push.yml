@@ -1,4 +1,4 @@
-name: Build
+name: Test
 
 # Triggers
 on:
@@ -7,9 +7,6 @@ on:
       - 'first_docs'
       - 'no_build*'
       - master
-  pull_request:
-    branches:
-      - 'release'
 
 # Specify what jobs to run
 jobs:
@@ -31,19 +28,24 @@ jobs:
           python-version: 3.6
 
       - name: Install Poetry
-        uses: dschep/install-poetry-action@v1.2
+        uses: dschep/install-poetry-action@db2e37f48d1b1cd1491c4590338ebc7699adb425
 
       - name: Install Dependencies
         run: poetry install
 
-      - name: Test
-        working-directory: ./tests
-        run: poetry run pytest . --cov ../lambda_cache --cov-report term-missing -vv
-
-      - name: Lint with black
+      - name: Linting with Black
         run: poetry run black lambda_cache --check
 
+      - name: Testing with Pytest
+        working-directory: ./tests
+        run: poetry run pytest . --cov ../lambda_cache --cov-report term-missing --ignore=./integration_tests/ -vv
+
     # Only runs on release branch
+      - name: Integration Test
+        if: github.ref == 'refs/heads/release' 
+        working-directory: ./tests/integration_tests
+        run: poetry run pytest -vv
+
       - name: Update Test Coverage
         if: github.ref == 'refs/heads/release'  # only on the feature branch do we publish code coverage stats
         working-directory: ./tests
@@ -54,7 +56,7 @@ jobs:
         if: success()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
+        uses: voxmedia/github-action-slack-notify-build@51259479e07a6e3c44b826b39b771be8106142ba
         with:
           channel: lambda-cache
           status: SUCCESS
@@ -64,7 +66,7 @@ jobs:
         if: failure()
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: voxmedia/github-action-slack-notify-build@v1
+        uses: voxmedia/github-action-slack-notify-build@51259479e07a6e3c44b826b39b771be8106142ba
         with:
           channel: lambda-cache
           status: FAILED

@@ -3,8 +3,10 @@ import boto3
 from .caching_logic import get_decorator, get_value
 from .exceptions import ArgumentTypeNotSupportedError
 
+default_max_age_in_seconds = 60
 
-def cache(name, ttl_seconds=60, entry_name=False):
+
+def cache(name, max_age_in_seconds=default_max_age_in_seconds, entry_name=False):
     """
     Calls check cache, and decorates function by injecting key value into the context object
         ** The secret name must be ASCII letters, digits, or the following characters : /_+=.@-
@@ -20,14 +22,14 @@ def cache(name, ttl_seconds=60, entry_name=False):
 
     decorator = get_decorator(
         argument=name,
-        ttl_seconds=ttl_seconds,
+        max_age_in_seconds=max_age_in_seconds,
         entry_name=entry_name,
         miss_function=get_secret_from_secrets_manager,
     )
     return decorator
 
 
-def get_entry(name, ttl_seconds=60, entry_name=False):
+def get_entry(name, max_age_in_seconds=default_max_age_in_seconds, entry_name=False):
     """
     Wrapper function for parameter_caching
 
@@ -41,7 +43,7 @@ def get_entry(name, ttl_seconds=60, entry_name=False):
     """
     secret_value = get_value(
         argument=name,
-        ttl_seconds=ttl_seconds,
+        max_age_in_seconds=max_age_in_seconds,
         entry_name=entry_name,
         miss_function=get_secret_from_secrets_manager,
     )

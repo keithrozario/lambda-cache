@@ -5,16 +5,20 @@ custom:
   parameter_name_2 : /lambda_cache/test/something_else
   secure_string: /lambda_cache/test/secure/somethingsecure
   string_list: /lambda/cache/test/somelist
+  s3_bucket_name: /lambda-cache/s3/bucket_name
 
 provider:
   name: aws
-  runtime: python3.8
+  runtime: python3.6
   stage: test
-  region: ap-southeast-1
+  region: ${env:AWS_DEFAULT_REGION, 'ap-southeast-1'}
+  environment:
+    S3_BUCKET: ${ssm:/lambda-cache/s3/bucket_name}
   iamRoleStatements:
     - Effect: Allow
       Action:
         - ssm:GetParameter
+        - ssm:GetParameters
       Resource:
         - Fn::Join:
           - ":"
@@ -40,6 +44,12 @@ provider:
             - Ref: AWS::Region
             - Ref: AWS::AccountId
             - "parameter${self:custom.string_list}"
+        - Fn::Join:
+          - ":"
+          - - "arn:aws:ssm"
+            - Ref: AWS::Region
+            - Ref: AWS::AccountId
+            - "parameter${self:custom.s3_bucket_name}"
     - Effect: Allow
       Action:
         - kms:Decrypt
@@ -50,25 +60,56 @@ provider:
             - Ref: AWS::Region
             - Ref: AWS::AccountId
             - "alias/aws/ssm"  # Default AWS Managed CMK Key
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource:
+        Fn::Join:
+          - ":"
+          - - "arn:aws:secretsmanager"
+            - Ref: AWS::Region
+            - Ref: AWS::AccountId
+            - "secret"
+            - "*"
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+      Resource: "*"
+
 
 package:
  include:
-   - ../../simple_lambda_cache/**
+   - ../../lambda_cache/**
    - ../variables_data.py
  exclude:
-   - ../../simple_lambda_cache/__pycache__/**
+   - ../../lambda_cache/__pycache__/**
+   - .pytest_cache/**
+   - __pycache__/**
+   - node_modules/**
+   - package.json
+   - package-lock.json
+   - tests/**
 
 functions:
   single_handler:
-    handler: test_ssm.single_parameter
-  multi_handler:
-    handler: test_ssm.multi_parameter
+    handler: _test_ssm.single_parameter
   default_param:
-    handler: test_ssm.rename_param
+    handler: _test_ssm.rename_param
   secure_string:
-    handler: test_ssm.secure_string
+    handler: _test_ssm.secure_string
   string_list:
-    handler: test_ssm.string_list
+    handler: _test_ssm.string_list
+  multi_handler:
+    handler: _test_ssm.multi_parameter
+  multi_handler_2:
+    handler: _test_ssm.multi_parameter_2
   assign_parameter:
-    handler: test_ssm.assign_parameter
-
+    handler: _test_ssm.assign_parameter
+  secret_string:
+    handler: _test_secrets.secret_string
+  secret_binary:
+    handler: _test_secrets.secret_binary
+  secret_string_default:
+    handler: _test_secrets.secret_string_default
+  s3_download:
+    handler: _test_s3.s3_download

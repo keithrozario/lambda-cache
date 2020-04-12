@@ -1,0 +1,8 @@
+-   repo: local
+    hooks:
+    -   id: Lint
+        name: Lint with Black
+        entry: ./.github/pre-commit/lint.sh
+        language: script
+        files: ^lambda_cache/
+        types: [file, python]
