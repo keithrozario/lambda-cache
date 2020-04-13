@@ -4,6 +4,9 @@ name: Release
 on:
   release:
     types: [published]
+  push:
+    branches:
+      - master
 
 # Specify what jobs to run
 jobs:
@@ -33,6 +36,7 @@ jobs:
           poetry build
           zip -r release dist
           ls -lah
+          echo "$(cat ${{ github.event_path }} | jq --raw-output '.release.upload_url')"
       
       - name: Archive production artifacts
         uses: actions/upload-artifact@v1
