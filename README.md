@@ -7,17 +7,26 @@
 
  [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 
-# Basics
+# Introduction
 
-_lambda_cache_ prioritizes simplicity over performance and flexibility. The goal is to provide the **simplest** way for developers to cache api calls in their Lambda functions.
+![Screenshot](docs/images/lambda_cache.png)
 
-Currently only SSM Parameters and Secrets from Secrets Manager are supported. S3 and generic function support is coming soon.
+_lambda-cache_ helps you cache data within your Lambda function **across** invocations. The package utilizes the internal memory of the lambda function's [execution context](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-context.html) to assist in caching, which in turn:
+
+* Reduces load on back-end systems
+* Reduces the execution time of the lambda
+* Guarantees functions will reference latest data after caches have expired
+* Reduces expensive network calls to APIs with throttling limits (or high charges)
+
+_lambda-cache_ prioritizes simplicity over performance or flexibility. The goal is to provide the **simplest** way for developers to cache data across lambda invocations.
+
+Currently supports SSM Parameters, Secrets Manager and S3 Objects.
 
 ## SSM - Parameter Store
 
 ### Cache single parameter
 
-To cache a parameter from ssm, decorate your handler function:
+To cache a single parameter from ssm, decorate your handler function like so:
 
 ```python
 from lambda_cache import ssm
@@ -28,11 +37,13 @@ def handler(event, context):
     response = do_something(var)
     return response
 ```
-All invocations of this function over in the next minute will reference the parameter from the function's internal cache, rather than making a network call to ssm. After one minute, the the next invocation will invoke `get_parameter` to refresh the cache.
+All invocations of this function over in the next minute will reference the parameter from the function's internal cache, rather than making a network call to ssm. After one minute, the the next invocation will request the latest value from parameter store. 
+
+This reduces the load on Parameter store, while speeding up your function execution time. 
 
 ### Change cache expiry
 
-The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines the maximum age of a parameter that is acceptable. Cache entries older than this value will be refreshed. To set a longer cache duration (e.g 5 minutes), change the setting like so:
+The default `max_age_in_seconds` settings is 60 seconds, it defines the maximum age of a parameter that is acceptable to the caller. Cache entries older than this value will be refreshed. To set a longer cache duration (e.g 5 minutes), change the setting like so:
 
 ```python
 from lambda_cache import ssm
@@ -48,21 +59,23 @@ _Note: The caching logic runs only at invocation, regardless of how long the fun
 
 ### Change cache entry settings
 
-The name of the parameter is simply shortened to the string after the last slash('/') character of its name. This means `/production/app/var` and `test/app/var` resolve to just `var`. To over-ride this default, use `entry_name` setting like so:
+The name of the parameter is simply shortened to the string after the last slash('/') character. This means `/production/app/var` and `test/app/var` resolve to just `var`. To over-ride this default, use the `entry_name` setting like so:
 
 ```python
 from lambda_cache import ssm
 
-@ssm.cache(parameter='/production/app/var', entry_name='new_var')
+@ssm.cache(parameter='/test/app/var')
+@ssm.cache(parameter='/prod/app/var', entry_name='new_var')
 def handler(event, context):
-    var = getattr(context,'new_var')
-    response = do_something(var)
+    prod_var = getattr(context,'new_var')
+    test_vat = getattr(context, 'var')
+    response = do_something(prod_var, test_var)
     return response
 ```
 
 ### Cache multiple parameters
 
-To cache multiple entries at once, pass a list of parameters to the parameter argument. This method groups all the parameter value under one python dictionary, stored in the Lambda Context under the `entry_name`. When using this method, `entry_name` is a mandatory setting, otherwise a `NoEntryNameError` exception is thrown.
+To cache multiple entries at once, pass a list of parameters to the parameter argument. This method groups all the parameter values under one python dictionary, stored in the Lambda Context under the `entry_name`. When using this method, `entry_name` must be provided, otherwise a `NoEntryNameError` exception is thrown.
 
 ```python
 from lambda_cache import ssm
@@ -75,9 +88,11 @@ def handler(event, context):
     return response
 ```
 
-Under the hood, we use the `get_parameters` API call for boto3, which translate to a single network call for multiple parameters. You can group all parameters types in a single call, including `String`, `StringList` and `SecureString`. `StringList` will return as a list, while all other types will return as plain-text strings. The library does not support returning `SecureString` parameters in encrypted form, and will only return plain-text strings regardless of String type.
+Under the hood, we use the `get_parameters` API call for boto3, which translate to a single network call for multiple parameters. You can group all parameters types in a single call, including `String`, `StringList` and `SecureString`. 
 
-_Note: for this method to work, ensure you have the `ssm:GetParameters` (with the 's' at the end) in your function's permission policy_
+`StringList` will return as a list, while all other types will return as plain-text strings. The library does not support returning `SecureString` parameters in encrypted form.
+
+_Note: for this method to work, ensure you have both the `ssm:GetParameter` and `ssm:GetParameters` (with the 's' at the end) permission in your function's policy_
 
 ### Decorator stacking
 
@@ -106,7 +121,8 @@ def handler(event, context):
 
     if event.get('refresh'):
         # refresh parameter
-        var = ssm.get_entry(parameter='/prod/var', max_age_in_seconds=0)
+        var = ssm.get_entry(parameter='/prod/var', 
+                            max_age_in_seconds=0)
     else:
         var = getattr(context,'var')
     
@@ -126,12 +142,12 @@ Caching supports `String`, `SecureString` and `StringList` parameters with no ch
 
 ### Cache single secret
 
-Secret support is similar, but uses the `secret.cache` decorator.
+Secret support is similar, but uses the `secrets_manager.cache` decorator.
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string')
+@secrets_manager.cache(name='/prod/db/conn_string')
 def handler(event, context):
     conn_string = getattr(context,'conn_string')
     return context
@@ -140,12 +156,12 @@ def handler(event, context):
 
 ### Change Cache expiry
 
-The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines how long a parameter should be kept in cache before it is refreshed from ssm. To configure longer or shorter times, modify this argument like so:
+The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines how long a parameter should be kept in cache before it is refreshed from secrets Manager. To configure longer or shorter times, modify this argument like so:
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_managers_manager
 
-@secret.cache(name='/prod/db/conn_string', max_age_in_seconds=300)
+@secrets_manager.cache(name='/prod/db/conn_string', max_age_in_seconds=300)
 def handler(event, context):
     var = getattr(context,'conn_string')
     response = do_something(var)
@@ -159,9 +175,9 @@ _Note: The caching logic runs only at invocation, regardless of how long the fun
 The name of the secret is simply shortened to the string after the last slash('/') character of the secret's name. This means `/prod/db/conn_string` and `/test/db/conn_string` resolve to just `conn_string`. To over-ride this default, use `entry_name`:
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string', entry_name='new_var')
+@secrets_manager.cache(name='/prod/db/conn_string', entry_name='new_var')
 def handler(event, context):
     var = getattr(context,'new_var')
     response = do_something(var)
@@ -173,8 +189,8 @@ def handler(event, context):
 If you wish to cache multiple secrets, you can use decorator stacking.
 
 ```python
-@secret.cache(name='/prod/db/conn_string', max_age_in_seconds=30)
-@secret.cache(name='/prod/app/elk_username_password', max_age_in_seconds=60)
+@secrets_manager.cache(name='/prod/db/conn_string', max_age_in_seconds=30)
+@secrets_manager.cache(name='/prod/app/elk_username_password', max_age_in_seconds=60)
 def handler(event, context):
     var1 = getattr(context,'conn_string')
     var2 = getattr(context,'elk_username_password')
@@ -188,9 +204,9 @@ _Note: Decorator stacking performs one API call per decorator, which might resul
 
 To invalidate a secret, use the `get_entry`, setting the `max_age_in_seconds=0`.
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string')
+@secrets_manager.cache(name='/prod/db/conn_string')
 def handler(event, context):
 
     if event.get('refresh'):
@@ -207,7 +223,7 @@ Secrets Manager supports both string and binary secrets. For simplicity we will 
 
 ## S3
 
-S3 support is considered _experimental_ for now, but withing the python community we see a lot of folks pull down files from S3 for use in AI/ML models.
+S3 support is considered _experimental_ for now, but withing the python community we see a lot of use-cases to pull down files from S3 for use in AI/ML models.
 
 Files downloaded from s3 are automatically stored in the `tmp` directory of the lambda function. This is the only writable directory within lambda, and has a 512MB of storage space. 
 
@@ -241,7 +257,7 @@ def s3_download_entry_name(event, context):
 
 _Note: The caching logic runs only at invocation, regardless of how long the function runs. A 15 minute lambda function will not refresh the object, unless explicitly refreshed using `s3.get_entry`. The library is primary interested in caching 'across' invocation rather than 'within' an invocation_
 
-By default, _lambda_cache_ will download the file once at cache has expired, however, to save on network bandwidth (and possibly time), we can set the `check_before_download` parameter to True. This will check the age of the object in S3 and download only if the object has changed since the last download. 
+By default, _lambda_cache_ will download the file once the cache has expired, however, to save on network bandwidth (and possibly time), we can set the `check_before_download` parameter to True. This will check the age of the object in S3 and download only if the object has changed since the last download. 
 
 ```python
 from lambda_cache import s3
@@ -254,7 +270,13 @@ def s3_download_entry_name(event, context):
     return status
 ```
 
-_Note: we use the GetHead object call to verify the objects `last_modified_date`. This simplifies the IAM policy of the function, as it still onlyrequires only the `s3:GetObject` permission. However, this is still a GET requests, and will be charged as such, for smaller objects it might be cheaper to just download the object_
+_Note: we use the GetHead object call to verify the objects `last_modified_date`. This simplifies the IAM policy of the function, as it still only requires only the `s3:GetObject` permission. However, this is still a GET requests, and will be charged as such, for smaller objects it might be cheaper to just download the object_
+
+# Installation
+
+    $ pip install lambda-cache
+
+Refer to [docs](https://lambda-cache.readthedocs.io/en/latest/) for more info.
 
 # Credit
 
