@@ -19,8 +19,9 @@ jobs:
         with:
           python-version: 3.6
 
+      # version 1.2
       - name: Install Poetry
-        uses: dschep/install-poetry-action@19ceef77c26aa7da443194100be00e3a510a67ad
+        uses: dschep/install-poetry-action@db2e37f48d1b1cd1491c4590338ebc7699adb425
 
       # We do not need dependencies for build or publish (native Poetry)
       # - name: Install Dependencies
