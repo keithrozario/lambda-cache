@@ -32,6 +32,7 @@ jobs:
         run: |
           poetry build
           zip -r release dist
+          ls -lah
       
       - name: Archive production artifacts
         uses: actions/upload-artifact@v1
