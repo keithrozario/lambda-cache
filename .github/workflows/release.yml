@@ -31,7 +31,7 @@ jobs:
         working-directory: .
         run: |
           poetry build
-          zip -r release.zip dist
+          zip -r release dist
       
       - name: Archive production artifacts
         uses: actions/upload-artifact@v1
@@ -46,7 +46,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: $(cat ${{ github.event_path }} | jq --raw-output '.release.upload_url')
-          asset_path: release.zip
+          asset_path: ./release.zip
           asset_name: release.zip
           asset_content_type: application/zip
 
