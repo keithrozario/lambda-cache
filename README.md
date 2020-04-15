@@ -32,6 +32,7 @@ Refer to [docs](https://lambda-cache.readthedocs.io/en/latest/) for how to inclu
 
 To begin caching parameters, secrets or S3, decorate your function's handler with the right decorator: 
 
+
 ```python
 from lambda_cache import s3, ssm, secrets_manager
 
