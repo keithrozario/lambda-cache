@@ -12,7 +12,7 @@ You can 'install' _lambda_cache_ by simply including the latest layer arn in you
 
 ## Using Serverless Framework
 
-Using [Serverless Framework](https://serverless.com/), and the [serverless-python-requirements](https://serverless.com/plugins/serverless-python-requirements/) plugin, you can include any python package, incluing _simple_lambda_cache_ into your lambda function.
+Using [Serverless Framework](https://serverless.com/), and the [serverless-python-requirements](https://serverless.com/plugins/serverless-python-requirements/) plugin, you can include any python package, including _simple_lambda_cache_ into your lambda function.
 
 simply ensure that _simple_lambda_cache_ is part of your `requirements.txt` file:
 
@@ -24,5 +24,4 @@ simply ensure that _simple_lambda_cache_ is part of your `requirements.txt` file
 Because _lambda_cache_ is a pure python package, you can also manually include it in your lambda function, like so:
 
     $ pip install lambda-cache -t /path/to/function
-
 

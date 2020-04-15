@@ -40,7 +40,7 @@ AWS provide no guarantees on how long execution contexts are kept warm before th
 
 Given that, there are only two options to keep an object in the functions memory, across multiple invocations of that same function.
 
-**Option 1**: Lookup the object outside the function's handler. This method is fast, cheap and causes the least load on back-end services like SSM or Databases. But because we cannot guarantee how long execution contexts are kept warm, an update to an object for example a parameter in SSM Parameter store might take hours before they effect function invocations.
+**Option 1**: Lookup the object outside the function's handler. This method is fast, cheap and causes the least load on back-end services like SSM or Databases. But because we cannot guarantee how long execution contexts are kept warm, an update to an object, for example a parameter in SSM Parameter store might take hours before they effect function invocations (when all warm functions are finally discarded)
 
 **Option 2**: Lookup the object on every invocation. This method is slow, expensive, and causes high load on backend systems. But it guarantees that an update to an object takes effect immediately.
 
