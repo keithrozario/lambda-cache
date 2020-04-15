@@ -4,7 +4,7 @@ name: Test
 on:
   push:
     branches-ignore:
-      - 'first_docs'
+      - 'docs*'
       - 'no_build*'
       - master
 
