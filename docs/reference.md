@@ -1,5 +1,6 @@
 # Reference
 
+---
 ## SSM
 ---
 
@@ -48,6 +49,7 @@ def handler(event, context):
     * **entry_name** (_str_): -- 
         * Name of entry in _context_ object. Required if **parameter** is of type list (**_default: paremeter.split('/')_**)
 
+---
 ## Secrets Manager
 ---
 
@@ -72,7 +74,6 @@ def call_with_entry_name(event, context):
         * Name of entry in cache. Required if (**_default: name.split('/')_**)
 
 ### **secrets_manager.get_entry**
-
 
 Get's the value of the secret from cache (forces a refresh from secrets_manager if cache entry is older than `max_age_in_seconds`)
 
@@ -100,7 +101,7 @@ def call_with_entry_name(event, context):
     * **entry_name** (_str_): -- 
         * Name of entry in cache. Required if (**_default: name.split('/')_**)
 
-
+---
 ## S3
 ---
 

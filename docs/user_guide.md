@@ -2,8 +2,6 @@
 
 _lambda_cache_ prioritizes simplicity over performance and flexibility. The goal of the package is to provide the **simplest** way for developers to cache api calls in their Lambda functions.
 
-Currently only SSM Parameters and Secrets from Secrets Manager are supported.
-
 ## SSM - Parameter Store
 
 ### Cache single parameter
@@ -19,11 +17,11 @@ def handler(event, context):
     response = do_something(var)
     return response
 ```
-All invocations of this function over in the next minute will reference the parameter from the function's internal cache, rather than making a network call to ssm. After one minute, the the next invocation will invoke `get_parameter` to refresh the cache.
+All invocations of this function over in the next minute will reference the parameter from the function's internal cache, rather than making a network call to ssm. After one minute has lapsed, the the next invocation will invoke `get_parameter` to refresh the cache.
 
 ### Change cache expiry
 
-The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines the maximum age of a parameter that is acceptable. Cache entries older than this value will be refreshed. To set a longer cache duration (e.g 5 minutes), change the setting like so:
+The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines the maximum age of a parameter that is acceptable to the handler function. Cache entries older than this, will be refreshed. To set a longer cache duration (e.g 5 minutes), change the setting like so:
 
 ```python
 from lambda_cache import ssm
@@ -39,7 +37,7 @@ _Note: The caching logic runs only at invocation, regardless of how long the fun
 
 ### Change cache entry settings
 
-The name of the parameter is simply shortened to the string after the last slash('/') character of its name. This means `/production/app/var` and `test/app/var` resolve to just `var`. To over-ride this default, use `entry_name` setting like so:
+The default name of the parameter is simply shortened to the string after the last slash('/') character of its name. This means `/production/app/var` and `test/app/var` resolve to just `var`. To over-ride this default, use `entry_name` setting like so:
 
 ```python
 from lambda_cache import ssm
@@ -53,7 +51,9 @@ def handler(event, context):
 
 ### Cache multiple parameters
 
-To cache multiple entries at once, pass a list of parameters to the parameter argument. This method groups all the parameter value under one python dictionary, stored in the Lambda Context under the `entry_name`. When using this method, `entry_name` is a mandatory setting, otherwise a `NoEntryNameError` exception is thrown.
+To cache multiple entries at once, pass a list of parameters to the parameter argument. This method groups all the parameter value under one python dictionary, stored in the Lambda Context under the `entry_name`. 
+
+_Note: When using this method, `entry_name` is a required parameter, if not present `NoEntryNameError` exception is thrown._
 
 ```python
 from lambda_cache import ssm
@@ -68,7 +68,7 @@ def handler(event, context):
 
 Under the hood, we use the `get_parameters` API call for boto3, which translate to a single network call for multiple parameters. You can group all parameters types in a single call, including `String`, `StringList` and `SecureString`. `StringList` will return as a list, while all other types will return as plain-text strings. The library does not support returning `SecureString` parameters in encrypted form, and will only return plain-text strings regardless of String type.
 
-_Note: for this method to work, ensure you have the `ssm:GetParameters` (with the 's' at the end) in your function's permission policy_
+_Note: for this method to work, ensure you have both `ssm:GetParameter` **and** `ssm:GetParameters` (with the 's' at the end) in your function's permission policy_
 
 ### Decorator stacking
 
@@ -111,7 +111,7 @@ To only get parameter once in the lifetime of the function, set `max_age_in_seco
 
 ### Return Values
 
-Caching supports `String`, `SecureString` and `StringList` parameters with no change required (ensure you have `kms:Decrypt` permission for `SecureString`). For simplicity, `StringList` parameters are automatically converted into list (delimited by '/'), while `String` and `SecureString` both return the single string value of the parameter.
+Caching supports `String`, `SecureString` and `StringList` parameters with no change required (ensure you have `kms:Decrypt` permission for `SecureString`). For simplicity, `StringList` parameters are automatically converted into list (delimited by comma), while `String` and `SecureString` both return the single string value of the parameter.
 
 ## Secrets Manager
 
@@ -200,9 +200,11 @@ Secrets Manager supports both string and binary secrets. For simplicity we will 
 
 S3 support is considered _experimental_ for now, but withing the python community we see a lot of folks pull down files from S3 for use in AI/ML models.
 
-Files downloaded from s3 are automatically stored in the `tmp` directory of the lambda function. This is the only writable directory within lambda, and has a 512MB of storage space. 
+Files downloaded from s3 are automatically stored in the `/tmp` directory of the lambda function. This is the only writable directory within lambda, and has a 512MB of storage space. 
 
+### Cache a single file
 To download a file from S3 use the the same decorator pattern:
+
 
 ```python
 from lambda_cache import s3
@@ -232,7 +234,9 @@ def s3_download_entry_name(event, context):
 
 _Note: The caching logic runs only at invocation, regardless of how long the function runs. A 15 minute lambda function will not refresh the object, unless explicitly refreshed using `s3.get_entry`. The library is primary interested in caching 'across' invocation rather than 'within' an invocation_
 
-By default, _lambda_cache_ will download the file once at cache has expired, however, to save on network bandwidth (and possibly time), we can set the `check_before_download` parameter to True. This will check the age of the object in S3 and download only if the object has changed since the last download. 
+### Check file before download
+
+By default, _lambda_cache_ will download the file once at cache has expired, however, to save on network bandwidth (and possibly time), we can set the `check_before_download` parameter to True. This will check the age of the object in S3 and download **only** if the object has changed since the last download. 
 
 ```python
 from lambda_cache import s3
@@ -245,4 +249,4 @@ def s3_download_entry_name(event, context):
     return status
 ```
 
-_Note: we use the GetHead object call to verify the objects `last_modified_date`. This simplifies the IAM policy of the function, as it still onlyrequires only the `s3:GetObject` permission. However, this is still a GET requests, and will be charged as such, for smaller objects it might be cheaper to just download the object_
+_Note: we use the GetHead object call to verify the objects `last_modified_date`. This simplifies the IAM policy of the function, as it still only requires the `s3:GetObject` permission. However, this is still a GET requests, and will be charged as such, for smaller objects it might be cheaper to just download the object_
