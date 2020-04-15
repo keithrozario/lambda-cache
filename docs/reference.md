@@ -1,28 +1,31 @@
 # Reference
 
 ## SSM
+---
 
-### ssm.cache
+### **ssm.cache**
 
 Decorator function, meant to decorate invocation handler, but can be used to decorate any method within your lambda function.
 
 ```python
 from lambda_cache import ssm
 
-@ssm.cache(parameter='/production/app/var')
+@ssm.cache(parameter='/prod/app/var', max_age_in_seconds=60, entry_name='simple_name')
 def handler(event, context):
-    var = getattr(context,'var')
+    var = getattr(context,'simple_name')
     response = do_something(var)
     return response
 ```
 
-#### Parameters
-
-* parameter(_str_): Name of Parameter is SSM Parameter Store
-* max_age_in_seconds(_int_): Maximum acceptable age of a cache entry before a refresh must be executed (**_default: 60_**)
-* entry_name(_str_): Name of entry in _context_ object. (**_default: paremeter.split('/')_**)
-
-### ssm.get_entry
+* **PARAMETERS**
+    * **parameter** (_str_ or _list_) -- **[REQUIRED]**
+        * Name of Parameter(s) is SSM Parameter Store. To cache more than one parameter, pass it a list of parameters. e.g. _['/dev/app/var1', 'dev/app/var2']_
+    * **max_age_in_seconds** (_int_): --
+        * Maximum age of a cache entry before a refresh (**_default: 60_**)
+    * **entry_name** (_str_): -- 
+        * Name of entry in _context_ object. Required if **parameter** is of type list (**_default: paremeter.split('/')_**)
+  
+### **ssm.get_entry**
 
 Get's the value of the ssm parameter from cache (forces a refresh from parameter store if the cache object is older than `max_age_in_seconds`)
 
@@ -31,20 +34,24 @@ from lambda_cache import ssm
 
 def handler(event, context):
     var = ssm.get_entry(parameter='/production/app/var',
-                        max_age_in_seconds=300)
+                        max_age_in_seconds=300,
+                        entry_name='simple_name')
     response = do_something(var)
     return response
 ```
 
-#### Parameters
-
-* parameter(_str_): Name of Parameter is SSM Parameter Store
-* max_age_in_seconds(_int_): Maximum acceptable age of a cache entry before a refresh must be executed (**_default: 60_**)
-* entry_name(_str_): Name of entry in _context_ object. (**_default: paremeter.split('/')_**)
+* **PARAMETERS**
+    * **parameter** (_str_ or _list_) -- **[REQUIRED]**
+        * Name of Parameter(s) is SSM Parameter Store. To cache more than one parameter, pass it a list of parameters. e.g. _['/dev/app/var1', 'dev/app/var2']_
+    * **max_age_in_seconds** (_int_): --
+        * Maximum age of a cache entry before a refresh (**_default: 60_**)
+    * **entry_name** (_str_): -- 
+        * Name of entry in _context_ object. Required if **parameter** is of type list (**_default: paremeter.split('/')_**)
 
 ## Secrets Manager
+---
 
-### secrets_manager.cache
+### **secrets_manager.cache**
 
 Decorator function, meant to decorate invocation handler, but can be used to decorate any method within your lambda function.
 
@@ -56,13 +63,16 @@ def call_with_entry_name(event, context):
     return response
 ```
 
-#### Parameters
+* **PARAMETERS**
+    * **name** (_str_) -- **[REQUIRED]**
+        * Name of secret in secrets manager
+    * **max_age_in_seconds** (_int_): --
+        * Maximum age of a cache entry before a refresh (**_default: 60_**)
+    * **entry_name** (_str_): -- 
+        * Name of entry in cache. Required if (**_default: name.split('/')_**)
 
-* name(_str_): Name of secret in secrets manager
-* max_age_in_seconds(_int_): Maximum acceptable age of a cache entry before a refresh must be executed (**_default: 60_**)
-* entry_name(_str_): Name of entry in _context_ object. (**_default: name.split('/')_**)
+### **secrets_manager.get_entry**
 
-### secrets_manager.get_entry
 
 Get's the value of the secret from cache (forces a refresh from secrets_manager if cache entry is older than `max_age_in_seconds`)
 
@@ -82,17 +92,21 @@ def call_with_entry_name(event, context):
     return response
 ```
 
-#### Parameters
+* **PARAMETERS**
+    * **name** (_str_) -- **[REQUIRED]**
+        * Name of secret in secrets manager
+    * **max_age_in_seconds** (_int_): --
+        * Maximum age of a cache entry before a refresh (**_default: 60_**)
+    * **entry_name** (_str_): -- 
+        * Name of entry in cache. Required if (**_default: name.split('/')_**)
 
-* name(_str_): Name of secret in secrets manager
-* max_age_in_seconds(_int_): Maximum acceptable age of a cache entry before a refresh must be executed (**_default: 60_**)
-* entry_name(_str_): Name of entry in _context_ object. (**_default: name.split('/')_**)
 
 ## S3
-
-Decorator function, meant to decorate invocation handler, but can be used to decorate any method within your lambda function.
+---
 
 ### s3.cache
+
+Decorator function, meant to decorate invocation handler, but can be used to decorate any method within your lambda function.
 
 ```python
 from lambda_cache import s3
@@ -104,12 +118,16 @@ def s3_download_entry_name(event, context):
 
     return status
 ```
-#### Parameters
+* **PARAMETERS**
+    * **s3Uri** (_str_) -- **[REQUIRED]**
+        * s3Uri of object to download in the form `s3://bucket-name/path/to/object`
+    * **max_age_in_seconds** (_int_): --
+        * Maximum age of a cache entry before a refresh (**_default: 60_**)
+    * **entry_name** (_str_): -- 
+        * Name of entry in _context_ object. (**_default: s3Uri.split('/')_**)
+    * **check_before_download** (_bool_): --
+        * Check object age before downloading (useful for large objects). Setting this to `True` will cause package to check if the object has been updated since the last cache refresh, and only download the object **if** the object has changed.(**_default: False_**)
 
-* s3Uri(_str_): s3Uri of object to download in the form `s3://bucket-name/path/to/object`
-* max_age_in_seconds(_int_): Maximum acceptable age of a cache entry before a refresh must be executed (**_default: 60_**)
-* entry_name(_str_): Name of entry in _context_ object. (**_default: s3Uri.split('/')_**). _Note: this is the location of the downloaded file and not the content of the file itself_
-* check_before_download(_bool_): Check object age before downloading (useful for large objects). Setting this to `True` will cause package to check if the object has been updated since the last cache refresh, and only download the object **if** the object has changed.
 
 ### s3.get_entry
 
@@ -122,9 +140,12 @@ def test_get_entry():
         status = json.loads(file_data.read())['status']
 ```
 
-#### Parameters
-
-* s3Uri(_str_): s3Uri of object to download in the form `s3://bucket-name/path/to/object`
-* max_age_in_seconds(_int_): Maximum acceptable age of a cache entry before a refresh must be executed (**_default: 60_**)
-* entry_name(_str_): Name of entry in _context_ object. (**_default: s3Uri.split('/')_**). _Note: this is the location of the downloaded file and not the content of the file itself_
-* check_before_download(_bool_): Check object age before downloading (useful for large objects). Setting this to `True` will cause package to check if the object has been updated since the last cache refresh, and only download the object **if** the object has changed.
+* **PARAMETERS**
+    * **s3Uri** (_str_) -- **[REQUIRED]**
+        * s3Uri of object to download in the form `s3://bucket-name/path/to/object`
+    * **max_age_in_seconds** (_int_): --
+        * Maximum age of a cache entry before a refresh (**_default: 60_**)
+    * **entry_name** (_str_): -- 
+        * Name of entry cache. (**_default: s3Uri.split('/')_**)
+    * **check_before_download** (_bool_): --
+        * Check object age before downloading (useful for large objects). Setting this to `True` will cause package to check if the object has been updated since the last cache refresh, and only download the object **if** the object has changed.(**_default: False_**)
