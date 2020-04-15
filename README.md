@@ -40,7 +40,6 @@ from lambda_cache import s3, ssm, secrets_manager
 @ssm.cache(parameter='/prod/app/var')
 @secrets_manager.cache(name='/prod/db/conn_string')
 @s3.cache(s3Uri='s3://bucket_name/path/to/object.json')
-
 def handler(event, context):
     var = getattr(context, 'var')
     secret = getattr(context, 'conn_string')
