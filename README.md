@@ -11,7 +11,7 @@
 
 ![Screenshot](docs/images/lambda_cache.png)
 
-_lambda-cache_ helps you cache data within your Lambda function **across** invocations. The package utilizes the internal memory of the lambda function's [execution context](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-context.html) to assist in caching, which in turn:
+_lambda-cache_ helps you cache data in your Lambda function **across** invocations. The package utilizes the internal memory of the lambda function's [execution context](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-context.html) to assist in caching, which in turn:
 
 * Reduces load on back-end systems
 * Reduces the execution time of the lambda
@@ -20,7 +20,7 @@ _lambda-cache_ helps you cache data within your Lambda function **across** invoc
 
 _lambda-cache_ prioritizes simplicity over performance or flexibility. The goal is to provide the **simplest** way for developers to cache data across lambda invocations.
 
-Currently supports SSM Parameters, Secrets Manager and S3 Objects.
+The package is purpose-built for running in AWS Lambda functions, and currently supports SSM Parameters, Secrets from Secrets Manager and S3 Objects.
 
 # Installation
 
@@ -34,15 +34,21 @@ To begin caching parameters, secrets or S3, decorate your function's handler wit
 
 
 ```python
-from lambda_cache import s3, ssm, secrets_manager
+from lambda_cache import ssm, secrets_manager, s3
 
-
+# Decorators injects cache entry into context object
 @ssm.cache(parameter='/prod/app/var')
 @secrets_manager.cache(name='/prod/db/conn_string')
 @s3.cache(s3Uri='s3://bucket_name/path/to/object.json')
 def handler(event, context):
+
+    # Parameter from SSM
     var = getattr(context, 'var')
+
+    # Secret from Secrets Manager
     secret = getattr(context, 'conn_string')
+
+    # Object from S3
     with open("/tmp/object.json") as file_data:
         status = json.loads(file_data.read())['status']
 
@@ -51,9 +57,9 @@ def handler(event, context):
     return response
 ```
 
-The first invocation of the function will populate the cache, after that all invocations over in the 60 seconds, will reference the parameter from the function's internal cache, without making a network calls to ssm, secrets manager or S3. After one minute, the the next invocation will refresh the cache from the respective back-ends.
+The first invocation of the function will populate the cache, after which all invocations over the next 60 seconds, will reference the parameter from the function's internal cache, without making a network calls to ssm, secrets manager or S3. After 60 seconds, the the next invocation will refresh the cache from the respective back-ends.
 
-Refer to [docs](https://lambda-cache.readthedocs.io/en/latest/user_guide/) for more info on how to change cache configurations.
+Refer to [docs](https://lambda-cache.readthedocs.io/en/latest/user_guide/) for how to change cache cache timings, cache entry names,and how to invalidate caches.
 
 # Credit
 
