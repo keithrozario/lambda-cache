@@ -138,3 +138,6 @@ dmypy.json
 # Terraform
 .terraform/
 *.tfstate
+
+# serverless
+.serverless/
