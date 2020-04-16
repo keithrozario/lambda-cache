@@ -1,9 +1,9 @@
-<h1 align="center"> lambda-cache </h1>
+<h1 align="center"> Lambda Cache </h1>
 <h2 align="center"> Simple Caching for AWS Lambda</h2>
 
-![PackageStatus](https://img.shields.io/pypi/status/lambda-cache) [![PyPI version](https://badge.fury.io/py/lambda-cache.svg)](https://badge.fury.io/py/lambda-cache) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7%20|%203.8&color=blue?style=flat-square&logo=python) ![License](https://img.shields.io/pypi/l/lambda-cache) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest)
+![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=orange?style=flat-square) ![PyPI version](https://img.shields.io/pypi/v/lambda-cache) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7%20|%203.8&color=blue?style=flat-square&logo=python) ![License: MIT](https://img.shields.io/github/license/keithrozario/lambda-cache) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest)
 
-![Test](https://github.com/keithrozario/lambda-cache/workflows/Test/badge.svg?branch=release) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/lambda-cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/lambda-cache?branch=release)  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ad70a44cb3e54d7ba600edc5fa89635c)](https://www.codacy.com/manual/keithrozario/lambda-cache?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=keithrozario/lambda-cache&amp;utm_campaign=Badge_Grade) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
+![Test](https://github.com/keithrozario/lambda-cache/workflows/Test/badge.svg?branch=release) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/lambda-cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/lambda-cache?branch=release) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 
 # Introduction
 
@@ -18,7 +18,9 @@ _lambda-cache_ helps you cache data in your Lambda function **across** invocatio
 
 _lambda-cache_ prioritizes simplicity over performance and flexibility. 
 
+
 The package is purpose-built for AWS Lambda functions, and currently supports SSM Parameters, Secrets from Secrets Manager and S3 Objects.
+
 
 # Installation
 
@@ -53,11 +55,6 @@ Below we describe further features of the package. For more info refer to the [u
 	* [Change Cache expiry](#ChangeCacheexpiry-1)
 	* [Check file before download](#Checkfilebeforedownload)
 
-<!-- vscode-markdown-toc-config
-	numbering=false
-	autoSave=true
-	/vscode-markdown-toc-config -->
-<!-- /vscode-markdown-toc -->
 ## <a name='SSM-ParameterStore'></a>SSM - Parameter Store
 
 ### <a name='Cachesingleparameter'></a>Cache single parameter
@@ -261,12 +258,13 @@ Files downloaded from s3 are automatically stored in the `/tmp` directory of the
 ### <a name='Cacheasinglefile'></a>Cache a single file
 To download a file from S3 use the the same decorator pattern:
 
-
 ```python
 from lambda_cache import s3
 
 @s3.cache(s3Uri='s3://bucket_name/path/to/object.json')
 def s3_download_entry_name(event, context):
+
+    # Object from S3 automatically saved to /tmp directory
     with open("/tmp/object.json") as file_data:
         status = json.loads(file_data.read())['status']
 
