@@ -1,11 +1,11 @@
-<h1 align="center"> lambda-cache </h1>
+<h1 align="center"> Lambda Cache </h1>
 <h2 align="center"> Simple Caching for AWS Lambda</h2>
 
-![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=blueviolet?style=flat-square) [![PyPI version](https://badge.fury.io/py/lambda-cache.svg)](https://badge.fury.io/py/lambda-cache) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7|%203.8&color=blue?style=flat-square&logo=python) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=orange?style=flat-square) ![PyPI version](https://img.shields.io/pypi/v/lambda-cache) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7|%203.8&color=blue?style=flat-square&logo=python) ![License: MIT](https://img.shields.io/github/license/keithrozario/lambda-cache)
 
-![Test](https://github.com/keithrozario/lambda-cache/workflows/Test/badge.svg?branch=release) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/lambda-cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/lambda-cache?branch=release) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest)
+![Test](https://github.com/keithrozario/lambda-cache/workflows/Test/badge.svg?branch=release) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/lambda-cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/lambda-cache?branch=release) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest)  [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 
- [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
+
 
 # Introduction
 
@@ -20,7 +20,7 @@ _lambda-cache_ helps you cache data in your Lambda function **across** invocatio
 
 _lambda-cache_ prioritizes simplicity over performance or flexibility. The goal is to provide the **simplest** way for developers to cache data across lambda invocations.
 
-The package is purpose-built for running in AWS Lambda functions, and currently supports SSM Parameters, Secrets from Secrets Manager and S3 Objects.
+The package is purpose-built for running in AWS Lambda functions, and currently supports SSM Parameters, Secrets Manager and S3 Objects.
 
 # Installation
 
@@ -30,7 +30,7 @@ Refer to [docs](https://lambda-cache.readthedocs.io/en/latest/) for how to inclu
 
 # Usage
 
-To begin caching parameters, secrets or S3, decorate your function's handler with the right decorator: 
+To begin caching parameters, secrets or S3 objects, decorate your function's handler with the right decorator: 
 
 
 ```python
@@ -48,7 +48,7 @@ def handler(event, context):
     # Secret from Secrets Manager
     secret = getattr(context, 'conn_string')
 
-    # Object from S3
+    # Object from S3 automatically saved to /tmp directory
     with open("/tmp/object.json") as file_data:
         status = json.loads(file_data.read())['status']
 
@@ -57,9 +57,9 @@ def handler(event, context):
     return response
 ```
 
-The first invocation of the function will populate the cache, after which all invocations over the next 60 seconds, will reference the parameter from the function's internal cache, without making a network calls to ssm, secrets manager or S3. After 60 seconds, the the next invocation will refresh the cache from the respective back-ends.
+The first invocation of the function will populate the cache, after which all invocations over the next 60 seconds, will reference the parameter from the function's internal cache, without making a network calls to ssm, secrets manager or S3. After 60 seconds, the next invocation will refresh the cache from the respective back-ends.
 
-Refer to [docs](https://lambda-cache.readthedocs.io/en/latest/user_guide/) for how to change cache cache timings, cache entry names,and how to invalidate caches.
+Refer to [docs](https://lambda-cache.readthedocs.io/en/latest/user_guide/) for how to change cache timings, change the cache entry names,and invalidate caches.
 
 # Credit
 
