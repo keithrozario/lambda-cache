@@ -4,11 +4,15 @@ Unlike other packages, _lambda_cache_ was designed to operate specifically withi
 
 There are two general options to using it.
 
-## Using the publicly available layer from Klayers
+## Manual Installation
 
-[Klayers](https://github.com/keithrozario/Klayers) is a project that publishes AWS Lambda Layers for public consumption. A Lambda layer is way to pre-package code for easy deployments into any Lambda function.
+Because _lambda-cache_ is a pure python package, you can manually include it in your lambda function, like so:
 
-You can 'install' _lambda_cache_ by simply including the latest layer arn in your lambda function.
+    $ pip install lambda-cache -t /path/to/function
+
+Once installed you will see the following directory structure in your lambda function via the console:
+
+![Installed Package](images/installed_package.png)
 
 ## Using Serverless Framework
 
@@ -18,10 +22,12 @@ simply ensure that _simple_lambda_cache_ is part of your `requirements.txt` file
 
     $ pip install lambda-cache
 
+## Using the publicly available layer from Klayers
 
-## Manual Installation
+[Klayers](https://github.com/keithrozario/Klayers) is a project that publishes AWS Lambda Layers for public consumption. A Lambda layer is way to pre-package code for easy deployments into any Lambda function.
 
-Because _lambda_cache_ is a pure python package, you can also manually include it in your lambda function, like so:
+You can 'install' _lambda_cache_ by simply including the latest layer arn in your lambda function.
 
-    $ pip install lambda-cache -t /path/to/function
+
+
 

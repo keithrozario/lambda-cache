@@ -2,6 +2,7 @@ import json
 import boto3
 
 from lambda_cache import ssm
+from datetime import datetime
 
 # this file is packaged in the lambda using serverless.yml
 from variables_data import *
@@ -30,19 +31,8 @@ def multi_parameter_2(event, context):
     client = boto3.client('ssm')
     response = client.put_parameter(
         Name=ssm_parameter,
-        Value='string',
-    Type='String'|'StringList'|'SecureString',
-    KeyId='string',
-    Overwrite=True|False,
-    AllowedPattern='string',
-    Tags=[
-        {
-            'Key': 'string',
-            'Value': 'string'
-        },
-    ],
-    Tier='Standard'|'Advanced'|'Intelligent-Tiering',
-    Policies='string'
-)
+        Value=datetime.now().isoformat(),
+        Type='String',
+        Overwrite=True)
 
     return generic_return(message)

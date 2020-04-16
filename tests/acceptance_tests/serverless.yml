@@ -19,6 +19,7 @@ provider:
       Action:
         - ssm:GetParameter
         - ssm:GetParameters
+        - ssm:PutParameter
       Resource:
         - Fn::Join:
           - ":"
@@ -89,7 +90,7 @@ package:
    - tests/**
 
 functions:
-  single_handler:
+  acceptance_test:
     handler: _test_ssm.multi_parameter_2
     layers: 
       - arn:aws:lambda:ap-southeast-1:908645878701:layer:pylayers-python38-defaultlambda-cache:1

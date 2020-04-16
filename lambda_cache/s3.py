@@ -1,8 +1,8 @@
 import boto3
 from datetime import datetime, timezone
 
-from .caching_logic import get_decorator, get_value, get_entry_name
-from .exceptions import ArgumentTypeNotSupportedError, InvalidS3UriError
+from .caching_logic import get_decorator, get_value
+from .exceptions import InvalidS3UriError
 
 
 def cache(
@@ -62,6 +62,7 @@ def get_entry(
 
 
 def get_object_from_s3(**kwargs):
+
     """
     Gets parameter value from the System manager Parameter store
 
