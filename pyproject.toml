@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "lambda-cache"
-version = "0.8.0"
+version = "0.8.1"
 description = "Python utility for simple caching in AWS Lambda functions"
 authors = ["keithrozario <keith@keithrozario.com>"]
-documentation = "https://simple-lambda-cache.readthedocs.io/en/latest/"
-repository = "https://github.com/keithrozario/simple_lambda_cache"
-homepage = "https://github.com/keithrozario/simple_lambda_cache"
+documentation = "https://lambda-cache.readthedocs.io/en/latest/"
+repository = "https://github.com/keithrozario/lambda-cache"
+homepage = "https://github.com/keithrozario/lambda-cache"
 classifiers=[
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

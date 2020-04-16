@@ -5,6 +5,7 @@ from .exceptions import ArgumentTypeNotSupportedError, NoEntryNameError
 
 
 def get_decorator(**kwargs):
+
     """
     Args:
         argument (string, list, dict) : argument to be passed to the missed function
@@ -34,6 +35,7 @@ def get_decorator(**kwargs):
 
 
 def get_value(**kwargs):
+
     """
     returns value of check_cache.
     """
@@ -50,6 +52,7 @@ def check_cache(
     send_details=False,
     **kwargs
 ):
+
     """
     Executes the caching logic, checks cache for entry
     If entry doesn't exist, returns entry_value by calling the miss function with entry_name and var_name
@@ -97,6 +100,7 @@ def check_cache(
 
 
 def get_entry_name(argument, entry_name):
+
     """
     argument is either SSM Parameter, Secret in Secrets Manager or Key in S3 bucket:
         SSM Parameter names can include only the following symbols and letters: a-zA-Z0-9_.-/
@@ -136,6 +140,7 @@ def get_entry_name(argument, entry_name):
 
 
 def get_entry_age(entry_name):
+
     """
     Args:
         entry_name(string): Name of entry to get age for
@@ -180,6 +185,7 @@ def update_cache(entry_name, entry_value):
 
 
 def get_entry_from_cache(entry_name):
+
     """
     Gets entry value from the cache
 
