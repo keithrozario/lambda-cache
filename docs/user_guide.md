@@ -120,9 +120,9 @@ Caching supports `String`, `SecureString` and `StringList` parameters with no ch
 Secret support is similar, but uses the `secret.cache` decorator.
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string')
+@secrets_manager.cache(name='/prod/db/conn_string')
 def handler(event, context):
     conn_string = getattr(context,'conn_string')
     return context
@@ -134,9 +134,9 @@ def handler(event, context):
 The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines how long a parameter should be kept in cache before it is refreshed from ssm. To configure longer or shorter times, modify this argument like so:
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string', max_age_in_seconds=300)
+@secrets_manager.cache(name='/prod/db/conn_string', max_age_in_seconds=300)
 def handler(event, context):
     var = getattr(context,'conn_string')
     response = do_something(var)
@@ -150,9 +150,9 @@ _Note: The caching logic runs only at invocation, regardless of how long the fun
 The name of the secret is simply shortened to the string after the last slash('/') character of the secret's name. This means `/prod/db/conn_string` and `/test/db/conn_string` resolve to just `conn_string`. To over-ride this default, use `entry_name`:
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string', entry_name='new_var')
+@secrets_manager.cache(name='/prod/db/conn_string', entry_name='new_var')
 def handler(event, context):
     var = getattr(context,'new_var')
     response = do_something(var)
@@ -164,8 +164,8 @@ def handler(event, context):
 If you wish to cache multiple secrets, you can use decorator stacking.
 
 ```python
-@secret.cache(name='/prod/db/conn_string', max_age_in_seconds=30)
-@secret.cache(name='/prod/app/elk_username_password', max_age_in_seconds=60)
+@secrets_manager.cache(name='/prod/db/conn_string', max_age_in_seconds=30)
+@secrets_manager.cache(name='/prod/app/elk_username_password', max_age_in_seconds=60)
 def handler(event, context):
     var1 = getattr(context,'conn_string')
     var2 = getattr(context,'elk_username_password')
@@ -179,13 +179,13 @@ _Note: Decorator stacking performs one API call per decorator, which might resul
 
 To invalidate a secret, use the `get_entry`, setting the `max_age_in_seconds=0`.
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string')
+@secrets_manager.cache(name='/prod/db/conn_string')
 def handler(event, context):
 
     if event.get('refresh'):
-        var = secret.get_entry(name='/prod/db/conn_string', max_age_in_seconds=0)
+        var = secrets_manager.get_entry(name='/prod/db/conn_string', max_age_in_seconds=0)
     else:
         var = getattr(context,'conn_string')
     response = do_something(var)

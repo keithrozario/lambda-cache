@@ -1,38 +1,33 @@
 <h1 align="center"> Lambda Cache </h1>
 <h2 align="center"> Simple Caching for AWS Lambda</h2>
 
-![PackageStatus](https://img.shields.io/static/v1?label=status&message=beta&color=orange?style=flat-square) ![PyPI version](https://img.shields.io/pypi/v/lambda-cache) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7%20|%203.8&color=blue?style=flat-square&logo=python) ![License: MIT](https://img.shields.io/github/license/keithrozario/lambda-cache) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest)
+![PackageStatus](https://img.shields.io/pypi/status/lambda-cache) ![PyPI version](https://img.shields.io/pypi/v/lambda-cache) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7%20|%203.8&color=blue?style=flat-square&logo=python) ![License: MIT](https://img.shields.io/github/license/keithrozario/lambda-cache) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest)
 
-![Test](https://github.com/keithrozario/lambda-cache/workflows/Test/badge.svg?branch=release) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/lambda-cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/lambda-cache?branch=release) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
+![Test](https://github.com/keithrozario/lambda-cache/workflows/Test/badge.svg?branch=release) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/lambda-cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/lambda-cache?branch=release) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ad70a44cb3e54d7ba600edc5fa89635c)](https://www.codacy.com/manual/keithrozario/lambda-cache?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=keithrozario/lambda-cache&amp;utm_campaign=Badge_Grade) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 
 # Introduction
 
 <p align="center"><img src='docs/images/lambda_cache.png'></p>
 
-_lambda-cache_ helps you cache data in your Lambda function **across** invocations. The package utilizes the internal memory of the lambda function's [execution context](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-context.html) to store data across multiple invocations. Doing this:
+_lambda-cache_ helps you cache data in your Lambda function from one invocation to another. It utilizes the internal memory of the lambda function's [execution context](https://docs.aws.amazon.com/lambda/latest/dg/runtimes-context.html) to store data across multiple invocations, which:
 
 * Reduces load on back-end systems
 * Reduces the execution time of the lambda
-* Guarantees functions will reference latest data after cache expiry
-* Reduces calls to APIs throttling limits or high charges
+* Guarantees that functions will reference latest data after cache expiry
 
-_lambda-cache_ prioritizes simplicity over performance and flexibility. 
-
-
-The package is purpose-built for AWS Lambda functions, and currently supports SSM Parameters, Secrets from Secrets Manager and S3 Objects.
-
+_lambda-cache_ is purpose-built for AWS Lambda functions, and prioritizes simplicity as our design gaol. It currently supports SSM Parameters, Secrets from Secrets Manager and S3 Objects.
 
 # Installation
 
-Include the package in your functions code zip-file using the following:
+Include the package in your function zip-file artifact using:
 
     $ pip install lambda-cache -t /path/of/function
 
-Refer to [docs](https://lambda-cache.readthedocs.io/en/latest/install/) for how to include into your lambda function.
+Refer to [installation guide](https://lambda-cache.readthedocs.io/en/latest/install/) for other options.
 
 # Usage
 
-Below we describe further features of the package. For more info refer to the [user guide](https://lambda-cache.readthedocs.io/en/latest/user_guide/).
+The official [user guide](https://lambda-cache.readthedocs.io/en/latest/user_guide/) has more info.
 
 <!-- vscode-markdown-toc -->
 * [SSM - Parameter Store](#SSM-ParameterStore)
@@ -70,11 +65,11 @@ def handler(event, context):
     response = do_something(var)
     return response
 ```
-All invocations of this function over in the next minute will reference the parameter from the function's internal cache, rather than making a network call to ssm. After one minute has lapsed, the the next invocation will invoke `get_parameter` to refresh the cache. The parameter value will be injected into the `context` object of your lambda handler.
+All invocations of this function over in the next minute will reference the parameter from the function's internal cache, rather than making a network call to ssm. After one minute has lapsed, the the next invocation will invoke `get_parameter` to refresh the cache. The parameter value will be injected into the `context` object of your lambda handler for retrieval.
 
 ### <a name='Changecacheexpiry'></a>Change cache expiry
 
-The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines the maximum age of a parameter that is acceptable to the handler function. Cache entries older than this, will be refreshed. To set a longer cache duration (e.g 5 minutes), change the setting like so:
+The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines the maximum age of a parameter that is acceptable to the handler function. Cache entries older than this, will be refreshed. To set a longer cache duration (e.g 5 minutes), change the setting:
 
 ```python
 from lambda_cache import ssm
@@ -86,11 +81,11 @@ def handler(event, context):
     return response
 ```
 
-_Note: The caching logic runs only at invocation, regardless of how long the function runs. A 15 minute lambda function will not refresh the parameter, unless explicitly refreshed using `get_entry` method. The library is primary interested in caching 'across' invocation rather than 'within' an invocation_
+_Note: The caching logic runs only at invocation, regardless of how long the function runs. A 15 minute lambda function will not refresh the parameter, unless explicitly refreshed using `get_entry` method (described later). The library is primary interested in caching 'across' invocations rather than 'within' an invocation_
 
 ### <a name='Changecacheentrysettings'></a>Change cache entry settings
 
-The default name of the parameter is the string after the last slash('/') character of its name. This means `/production/app/var` and `test/app/var` both resolve to just `var`. To over-ride this default, use `entry_name` setting like so:
+The default name of the parameter is the string after the last slash('/') character of its name. This means `/production/app/var` and `test/app/var` both resolve to just `var`. To over-ride this default, use the `entry_name` setting like so:
 
 ```python
 from lambda_cache import ssm
@@ -104,9 +99,9 @@ def handler(event, context):
 
 ### <a name='Cachemultipleparameters'></a>Cache multiple parameters
 
-To cache multiple entries at once, pass a list of parameters to the parameter argument. This method groups all the parameter value under one python dictionary, stored in the Lambda Context under the `entry_name`. 
+To cache multiple entries at once, pass a list of parameters to the parameter argument. This method groups all the parameter values in one python dictionary, stored in the Lambda Context under the `entry_name`. 
 
-_Note: When using this method, `entry_name` is a required parameter, if not present `NoEntryNameError` exception is thrown._
+_Note: When using this method, `entry_name` is a required parameter, if not present a `NoEntryNameError` exception is thrown._
 
 ```python
 from lambda_cache import ssm
@@ -173,9 +168,9 @@ Caching supports `String`, `SecureString` and `StringList` parameters with no ch
 Secret support is similar, but uses the `secret.cache` decorator.
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string')
+@secrets_manager.cache(name='/prod/db/conn_string')
 def handler(event, context):
     conn_string = getattr(context,'conn_string')
     return context
@@ -187,9 +182,9 @@ def handler(event, context):
 The default `max_age_in_seconds` settings is 60 seconds (1 minute), it defines how long a parameter should be kept in cache before it is refreshed from ssm. To configure longer or shorter times, modify this argument like so:
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string', max_age_in_seconds=300)
+@secrets_manager.cache(name='/prod/db/conn_string', max_age_in_seconds=300)
 def handler(event, context):
     var = getattr(context,'conn_string')
     response = do_something(var)
@@ -203,9 +198,9 @@ _Note: The caching logic runs only at invocation, regardless of how long the fun
 The name of the secret is simply shortened to the string after the last slash('/') character of the secret's name. This means `/prod/db/conn_string` and `/test/db/conn_string` resolve to just `conn_string`. To over-ride this default, use `entry_name`:
 
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string', entry_name='new_var')
+@secrets_manager.cache(name='/prod/db/conn_string', entry_name='new_var')
 def handler(event, context):
     var = getattr(context,'new_var')
     response = do_something(var)
@@ -217,8 +212,8 @@ def handler(event, context):
 If you wish to cache multiple secrets, you can use decorator stacking.
 
 ```python
-@secret.cache(name='/prod/db/conn_string', max_age_in_seconds=30)
-@secret.cache(name='/prod/app/elk_username_password', max_age_in_seconds=60)
+@secrets_manager.cache(name='/prod/db/conn_string', max_age_in_seconds=30)
+@secrets_manager.cache(name='/prod/app/elk_username_password', max_age_in_seconds=60)
 def handler(event, context):
     var1 = getattr(context,'conn_string')
     var2 = getattr(context,'elk_username_password')
@@ -232,16 +227,17 @@ _Note: Decorator stacking performs one API call per decorator, which might resul
 
 To invalidate a secret, use the `get_entry`, setting the `max_age_in_seconds=0`.
 ```python
-from lambda_cache import secret
+from lambda_cache import secrets_manager
 
-@secret.cache(name='/prod/db/conn_string')
+@secrets_manager.cache(name='/prod/db/conn_string')
 def handler(event, context):
 
-    if event.get('refresh'):
-        var = secret.get_entry(name='/prod/db/conn_string', max_age_in_seconds=0)
-    else:
-        var = getattr(context,'conn_string')
-    response = do_something(var)
+    try:
+        response = db_connect()
+    except AuthenticationError:
+        var = secrets_manager.get_entry(name='/prod/db/conn_string', max_age_in_seconds=0)
+        response = db_connect()
+
     return response
 ```
 
