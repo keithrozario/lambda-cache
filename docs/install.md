@@ -28,6 +28,10 @@ simply ensure that _simple_lambda_cache_ is part of your `requirements.txt` file
 
 You can 'install' _lambda_cache_ by simply including the latest layer arn in your lambda function.
 
+For now include any of the following arns as layers in your package, replacing <region>, with your region of choice (e.g. 'ap-southeast-1','us-east-1', etc.)
+
+arn:aws:lambda:<region>:770693421928:layer:Klayers-python38-lambda-cache:1
+
 
 
 
