@@ -1,7 +1,9 @@
 <h1 align="center"> Lambda Cache </h1>
-<h2 align="center"> Simple Caching for AWS Lambda</h2>
+<h2 align="center"> Simple Caching for Lambda Functions</h2>
 
-![PackageStatus](https://img.shields.io/pypi/status/lambda-cache) ![PyPI version](https://img.shields.io/pypi/v/lambda-cache) ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7%20|%203.8&color=blue?style=flat-square&logo=python) ![License: MIT](https://img.shields.io/github/license/keithrozario/lambda-cache) [![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)](https://lambda-cache.readthedocs.io/en/latest/?badge=latest)
+![PackageStatus](https://img.shields.io/pypi/status/lambda-cache) ![PyPI version](https://img.shields.io/pypi/v/lambda-cache) ![Downloads](https://pepy.tech/badge/lambda-cache)
+
+![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7%20|%203.8&color=blue?style=flat-square&logo=python) ![License: MIT](https://img.shields.io/github/license/keithrozario/lambda-cache) ![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)
 
 ![Test](https://github.com/keithrozario/lambda-cache/workflows/Test/badge.svg?branch=release) [![Coverage Status](https://coveralls.io/repos/github/keithrozario/lambda-cache/badge.svg?branch=release)](https://coveralls.io/github/keithrozario/lambda-cache?branch=release) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ad70a44cb3e54d7ba600edc5fa89635c)](https://www.codacy.com/manual/keithrozario/lambda-cache?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=keithrozario/lambda-cache&amp;utm_campaign=Badge_Grade) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) 
 
