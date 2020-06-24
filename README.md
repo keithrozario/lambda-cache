@@ -1,7 +1,7 @@
 <h1 align="center"> Lambda Cache </h1>
 <h2 align="center"> Simple Caching for Lambda Functions</h2>
 
-![PackageStatus](https://img.shields.io/pypi/status/lambda-cache) ![PyPI version](https://img.shields.io/pypi/v/lambda-cache) ![Downloads](https://pepy.tech/badge/lambda-cache)
+![PackageStatus](https://img.shields.io/pypi/status/lambda-cache) ![PyPI version](https://img.shields.io/pypi/v/lambda-cache) ![Downloads](https://img.shields.io/pypi/dw/lambda-cache)
 
 ![PythonSupport](https://img.shields.io/static/v1?label=python&message=3.6%20|%203.7%20|%203.8&color=blue?style=flat-square&logo=python) ![License: MIT](https://img.shields.io/github/license/keithrozario/lambda-cache) ![Documentation Status](https://readthedocs.org/projects/lambda-cache/badge/?version=latest)
 
